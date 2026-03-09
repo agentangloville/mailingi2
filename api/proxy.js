@@ -22,7 +22,7 @@ module.exports = async function handler(req, res) {
     let prompt;
 
     if (emailType === 'plaintext') {
-      prompt = `You are writing a personal, human-sounding email on behalf of Angloville.
+      prompt = `You are an elite sales copywriter writing a personal 1-to-1 email on behalf of Angloville. You write like a top-performing salesperson who NEVER gives up — every email must make the reader feel that Angloville is the missing piece in their life. Not pushy. Not salesy. But deeply persuasive through genuine value, storytelling, and emotional connection.
 
 BRAND CONTEXT:
 ${brand}
@@ -35,23 +35,52 @@ ${extra || 'None'}
 
 LANGUAGE RULE: ${langNote}
 
-STYLE: This is a PERSONAL email — like a real person writing from their inbox. No marketing buzzwords. No images. No buttons. No HTML formatting. Write naturally, warmly, as if you're emailing a friend or acquaintance. Be conversational. Use short paragraphs. Include a natural call-to-action as a simple text link or suggestion, not a button. The tone should feel genuine and helpful, not salesy.
+═══ COPYWRITING RULES (follow these strictly) ═══
+
+SUBJECT LINE MASTERY:
+- Max 50 characters — must be fully visible on mobile
+- Write like a real person, NOT a brand. No "Newsletter #12" or "Angloville update"
+- Use ONE of these proven high-open-rate formulas:
+  • Curiosity gap: hint at something without revealing it ("I have an idea for your summer")
+  • Question that demands an answer ("What if you could speak English in 7 days?")
+  • Personal & direct: sounds like it came from a friend ("Quick thought about your plans")
+  • Pattern interrupt: unexpected, breaks inbox monotony ("This isn't a typical email")
+- NEVER use spam triggers: "free", "act now", "guaranteed", "!!!". No ALL CAPS words.
+- Preheader must COMPLEMENT subject, not repeat it — together they tell a mini-story
+
+PERSUASION FRAMEWORK (apply throughout the email):
+1. OPEN WITH EMPATHY — show you understand the reader's world. Don't start with Angloville. Start with THEM.
+2. PAINT THE TRANSFORMATION — help them SEE and FEEL what life looks like AFTER. Use sensory language.
+3. SOCIAL PROOF — weave in proof naturally: "7000+ people have done this", "participants say…"
+4. MAKE IT FEEL SCARCE AND REAL — limited spots, specific dates, real constraints. Never fake urgency.
+5. SOFT CTA — not "BUY NOW" but an invitation: "I'd love to tell you more", "worth a look?"
+
+TONE:
+- This is a PERSONAL email — like a real human writing from their inbox
+- No marketing buzzwords. No images. No buttons. No HTML formatting
+- Conversational, warm, like emailing someone you genuinely want to help
+- Short paragraphs (1-3 sentences each). Easy to scan on mobile
+- The reader should finish thinking "this sounds amazing, I need to check this out"
+
+CRITICAL: Make the reader feel that Angloville is something extraordinary that they would regret not exploring. Not through pressure — through genuine excitement and painted possibilities.
 
 Return ONLY valid JSON, no markdown, no backticks.
 
 {
-  "subject": "casual but compelling subject line, max 55 chars, like a real person wrote it",
-  "subject_emoji": "same subject but with 1 emoji max 60 chars",
-  "greeting": "personal greeting e.g. Hi there, Cześć, Ciao",
-  "body": "3-5 short paragraphs of natural personal email. Separate paragraphs with newlines. Sound human, warm, conversational. Mention the programme naturally. Include a soft CTA.",
-  "cta": "short text for the link, e.g. Check it out here, Zobacz szczegóły",
-  "closing": "warm sign-off with name, e.g. Best,\\nKasia from Angloville",
-  "ab1": "A/B subject variant A",
-  "ab2": "A/B subject variant B",
-  "send_time": "best send day and time with short reason"
+  "subject": "curiosity-driven subject max 50 chars, sounds personal not branded",
+  "subject_emoji": "same subject with 1 emoji max 55 chars",
+  "greeting": "warm personal greeting",
+  "body": "4-6 short paragraphs. Open with empathy about THEM. Paint the transformation. Weave in social proof. Mention programme naturally. End with soft invitation. Separate with newlines.",
+  "cta": "soft CTA text for the link — an invitation, not a command",
+  "closing": "warm human sign-off with first name,\\ne.g. Pozdrawiam,\\nKasia z Angloville",
+  "ab1": "A/B subject variant A — different formula than main",
+  "ab2": "A/B subject variant B — yet another angle",
+  "send_time": "best send day/time with reason based on email marketing data"
 }`;
     } else {
-      prompt = `You are an expert email marketing copywriter for Angloville.
+      prompt = `You are an elite email marketing copywriter and conversion specialist for Angloville. You write like the best salespeople in the world — you NEVER let the reader leave without feeling that Angloville is exactly what they need. Not through pressure — through irresistible value, storytelling, FOMO, and emotional connection.
+
+Your emails consistently achieve 35%+ open rates and 8%+ click rates because you follow proven best practices from top brands.
 
 BRAND CONTEXT:
 ${brand}
@@ -66,31 +95,79 @@ ${imgNote}
 
 LANGUAGE RULE: ${langNote}
 
-IMPORTANT for body_p2: Write 2-4 short punchy lines each starting with a relevant emoji, separated by newlines.
-Example:
-🏡 Free accommodation and meals included
-✈️ No experience required
-🎓 Gain internationally recognised experience
+═══ SUBJECT LINE MASTERY (this is the MOST critical element) ═══
+- Max 50 characters — must be fully visible on mobile
+- Use ONE of these proven high-open-rate formulas:
+  • Curiosity gap: "Co się stanie, gdy..." / "You won't believe what happened in Italy"
+  • FOMO/scarcity: "Ostatnie 5 miejsc" / "This won't be available again"
+  • Question: "Mówisz po angielsku?" / "Ready for the summer of your life?"
+  • Number + benefit: "7 dni do płynnego angielskiego" / "3 reasons to apply today"
+  • Pattern interrupt: something unexpected that breaks inbox monotony
+- NEVER use spam triggers: "free", "act now", "guaranteed", "!!!". No ALL CAPS words.
+- Preheader must COMPLEMENT subject (not repeat it) — together they're a 1-2 punch
+- A/B variants should test DIFFERENT psychological angles (curiosity vs FOMO vs question)
 
-DATES TABLE: If the additional instructions mention ANY dates, terms, sessions, or time periods for programmes, you MUST generate a "dates_table" array. Each entry should have "programme" (name), "dates" (date range), and optionally "note" (e.g. "last 3 spots!", "early bird -15%"). If no dates are mentioned, set dates_table to an empty array [].
+═══ EMAIL BODY — PERSUASION ARCHITECTURE ═══
+
+HEADLINE: Powerful, benefit-driven. Max 70 chars. Should make the reader STOP scrolling. Use one of: transformation promise, provocative question, or bold claim with proof.
+
+INTRO (2-3 sentences): 
+- Start with the READER, not with Angloville. Show you understand their world.
+- Use the "before" state — the frustration, the dream, the gap in their life
+- Then hint at the solution (Angloville) without hard-selling
+
+BODY_P1 (what they'll experience):
+- Paint the TRANSFORMATION with sensory language — what does a day look like?
+- Make them FEEL it: the conversations, the laughter, the food, the friendships
+- This is not a feature list — it's a movie trailer of their future experience
+
+BODY_P2 (emoji bullet points):
+- 2-4 short punchy lines, each starting with a relevant emoji
+- Each line = one concrete benefit that removes an objection or amplifies desire
+- Use social proof where possible: "7000+ uczestników" / "4.8★ rating"
+- Example format:
+  🏡 70h rozmów 1:1 z native speakerami w 6 dni
+  ✈️ Zakwaterowanie i wyżywienie w cenie
+  🎓 Bez podręczników, bez klasy — 100% immersja
+
+BODY_P3 (urgency + call to action):
+- Create GENUINE urgency — real deadlines, limited spots, seasonal timing
+- Use loss aversion: "don't miss" > "sign up". Frame what they LOSE by not acting
+- End with a clear reason to click NOW, not "someday"
+
+CTA BUTTONS:
+- Primary: action-oriented, benefit-focused. NOT "Learn more" — instead "Zarezerwuj miejsce" / "See available dates"
+- Secondary: lower commitment alternative. "Sprawdź program" / "Show me more"
+
+PS LINE:
+- Use as a "second chance" hook — many readers skip to PS first
+- Add one more reason to act: bonus info, social proof stat, or deadline reminder
+
+═══ CRITICAL MINDSET ═══
+The reader's inbox has 50 other emails. Yours must be the one they CANNOT ignore.
+Make them feel that Angloville is not just another programme — it's THE experience they've been waiting for.
+Write as if the reader is your friend and you're genuinely excited to share something life-changing with them.
+Never be generic. Never be boring. Every sentence must earn the right to the next sentence.
+
+DATES TABLE: If the additional instructions mention ANY dates, terms, sessions, or time periods, you MUST generate a "dates_table" array. Each entry: "programme" (name), "dates" (date range), optionally "note" (e.g. "ostatnie 3 miejsca!", "early bird -15%"). If no dates mentioned, set to [].
 
 Return ONLY valid JSON, no markdown, no backticks.
 
 {
-  "subject": "subject line no emoji max 55 chars",
-  "subject_emoji": "subject with 1-2 emojis max 65 chars",
-  "preheader": "preheader max 90 chars",
-  "headline": "strong punchy headline max 70 chars",
-  "intro": "2-3 sentence warm opening paragraph",
-  "body_p1": "2-3 sentences what participants do",
-  "body_p2": "2-4 emoji bullet lines separated by newlines",
-  "body_p3": "2-3 sentences urgency and call to action",
-  "cta": "primary CTA button max 35 chars",
-  "cta2": "secondary CTA button max 35 chars",
-  "ps": "short PS with urgency or bonus",
-  "ab1": "A/B subject variant A",
-  "ab2": "A/B subject variant B",
-  "send_time": "best send day and time with short reason",
+  "subject": "curiosity/FOMO subject max 50 chars, irresistible to open",
+  "subject_emoji": "same with 1-2 emojis max 55 chars",
+  "preheader": "complements subject, max 90 chars — together they're a 1-2 punch",
+  "headline": "powerful benefit-driven headline max 70 chars",
+  "intro": "2-3 sentences — start with THEM, not Angloville. Empathy + hint of solution",
+  "body_p1": "2-3 sentences painting the transformation — sensory, emotional, cinematic",
+  "body_p2": "2-4 emoji bullet lines — concrete benefits + social proof, separated by newlines",
+  "body_p3": "2-3 sentences — genuine urgency, loss aversion, reason to act NOW",
+  "cta": "primary CTA max 35 chars — action + benefit, not generic",
+  "cta2": "secondary CTA max 35 chars — lower commitment alternative",
+  "ps": "PS with one more hook — bonus, social proof stat, or deadline",
+  "ab1": "A/B variant A — DIFFERENT psychological angle than main subject",
+  "ab2": "A/B variant B — yet another angle (question vs FOMO vs curiosity)",
+  "send_time": "best send day/time with data-backed reason",
   "dates_table": [{"programme":"Programme Name","dates":"21 Jun – 28 Jun 2026","note":"last spots!"}]
 }`;
     }
@@ -99,7 +176,7 @@ Return ONLY valid JSON, no markdown, no backticks.
       const aiRes = await fetch('https://api.anthropic.com/v1/messages', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01' },
-        body: JSON.stringify({ model: 'claude-opus-4-5', max_tokens: 2000, messages: [{ role: 'user', content: prompt }] }),
+        body: JSON.stringify({ model: 'claude-opus-4-5', max_tokens: 2500, messages: [{ role: 'user', content: prompt }] }),
       });
       const aiData = await aiRes.json();
       if (!aiRes.ok) throw new Error(aiData.error?.message || 'Anthropic API error');
