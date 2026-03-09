@@ -470,10 +470,51 @@ input.ef:focus,textarea.ef:focus{outline:none;border-color:var(--b)}
     </div>
   </div>
 
-  <!-- STEP 3: FOOTER -->
+  <!-- STEP 3: LINKS & UTM -->
   <div class="step">
     <div class="step-head">
       <div class="step-num">3</div>
+      <div class="step-lbl">Links & UTM</div>
+      <div class="step-hint">Set destination URLs and tracking</div>
+    </div>
+    <div class="step-body">
+      <div class="utm-wrap">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
+          <div class="ef-group" style="margin:0">
+            <div class="ef-label" style="margin-bottom:4px"><span>🟡 Primary CTA link</span></div>
+            <input type="text" class="ef" id="utm-base" placeholder="https://angloville.com/apply/" oninput="utmPrev()">
+          </div>
+          <div class="ef-group" style="margin:0">
+            <div class="ef-label" style="margin-bottom:4px"><span>🔵 Secondary CTA link</span><span style="font-size:9px;color:var(--sub);font-weight:400">puste = tak samo jak primary</span></div>
+            <input type="text" class="ef" id="utm-base2" placeholder="(same as primary)" oninput="utmPrev()">
+          </div>
+        </div>
+        <div style="height:1px;background:var(--brd);margin-bottom:12px"></div>
+        <div style="font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--sub);margin-bottom:8px">UTM Parameters</div>
+        <div class="utm-grid">
+          <div class="ef-group"><div class="ef-label">utm_source</div><input type="text" class="ef" id="utm-src" value="mailchimp" oninput="utmPrev()"></div>
+          <div class="ef-group"><div class="ef-label">utm_medium</div><input type="text" class="ef" id="utm-med" value="email" oninput="utmPrev()"></div>
+          <div class="ef-group"><div class="ef-label">utm_campaign</div><input type="text" class="ef" id="utm-cmp" value="" placeholder="np. summer-2026" oninput="utmPrev()"></div>
+          <div class="ef-group"><div class="ef-label">utm_content</div><input type="text" class="ef" id="utm-cnt" placeholder="cta_button" oninput="utmPrev()"></div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px">
+          <div>
+            <div class="ef-label"><span>🟡 Primary full URL</span><button class="btn-cp" onclick="cp2(buildUrl(1),this)">copy</button></div>
+            <div class="utm-out" id="utm-out1">← wpisz URL wyżej</div>
+          </div>
+          <div>
+            <div class="ef-label"><span>🔵 Secondary full URL</span><button class="btn-cp" onclick="cp2(buildUrl(2),this)">copy</button></div>
+            <div class="utm-out" id="utm-out2">← wpisz URL wyżej</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 4: FOOTER -->
+  <div class="step">
+    <div class="step-head">
+      <div class="step-num">4</div>
       <div class="step-lbl">Email footer</div>
       <div class="step-hint">Choose domain footer</div>
     </div>
@@ -495,10 +536,10 @@ input.ef:focus,textarea.ef:focus{outline:none;border-color:var(--b)}
     </div>
   </div>
 
-  <!-- STEP 4: NOTES -->
+  <!-- STEP 5: NOTES -->
   <div class="step">
     <div class="step-head">
-      <div class="step-num">4</div>
+      <div class="step-num">5</div>
       <div class="step-lbl">Additional instructions</div>
       <div class="step-hint">Optional — AI will follow these</div>
     </div>
@@ -1131,13 +1172,21 @@ function renderResults(c,progs){
     ['e-h1','Headline (H2 in email)',c.headline,1],
     ['e-intro','Opening paragraph',c.intro,3],
   ]);
-  // Hi First Name toggle
-  h+=`<div class="rcard" style="margin-top:-6px;padding:10px 16px;background:#FAFBFD;">
-    <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:12px;color:var(--txt);">
-      <input type="checkbox" id="show-greeting" checked onchange="renderGreetingPreview()"
-        style="width:16px;height:16px;accent-color:var(--dk);cursor:pointer;">
-      <span>Pokaż <strong>Hi *|FNAME|*,</strong> na początku emaila</span>
-    </label>
+  // Greeting per market
+  const greetOpts = {
+    com: [{id:'hi-fname',lbl:'Hi *|FNAME|*,',val:'Hi <strong>*|FNAME|*</strong>,'},{id:'hello',lbl:'Hello!',val:'Hello!'},{id:'custom-g',lbl:'Custom…',val:''}],
+    pl: [{id:'dzien-dobry',lbl:'Dzień dobry *|FNAME|*!',val:'Dzień dobry <strong>*|FNAME|*</strong>!'},{id:'czesc',lbl:'Cześć *|FNAME|*!',val:'Cześć <strong>*|FNAME|*</strong>!'},{id:'hi-fname',lbl:'Hi *|FNAME|*,',val:'Hi <strong>*|FNAME|*</strong>,'},{id:'custom-g',lbl:'Custom…',val:''}],
+    it: [{id:'ciao',lbl:'Ciao *|FNAME|*!',val:'Ciao <strong>*|FNAME|*</strong>!'},{id:'buongiorno',lbl:'Buongiorno *|FNAME|*!',val:'Buongiorno <strong>*|FNAME|*</strong>!'},{id:'hi-fname',lbl:'Hi *|FNAME|*,',val:'Hi <strong>*|FNAME|*</strong>,'},{id:'custom-g',lbl:'Custom…',val:''}],
+  };
+  const gOpts = greetOpts[market]||greetOpts.com;
+  h+=`<div class="rcard" style="margin-top:-6px;padding:12px 16px;background:#FAFBFD;">
+    <div style="font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--sub);margin-bottom:8px">Powitanie na początku emaila</div>
+    <div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:6px">
+      <button type="button" class="img-tab on" id="greet-none-btn" onclick="setGreeting('none')">❌ Brak</button>
+      ${gOpts.map((g,i)=>`<button type="button" class="img-tab" id="greet-${g.id}-btn" onclick="setGreeting('${g.id}')">${esc(g.lbl)}</button>`).join('')}
+    </div>
+    <input type="text" class="ef" id="greeting-custom" placeholder="Wpisz własne powitanie…" style="display:none;margin-top:6px" oninput="updateGreetingVal()">
+    <input type="hidden" id="greeting-val" value="">
   </div>`;
 
   // Body — RTE fields
@@ -1163,23 +1212,14 @@ function renderResults(c,progs){
     ['e-ps','PS line',c.ps||'',1],
   ]);
 
-  // UTM
-  h+=`<div class="rcard">
-    <div class="rcard-head"><span class="rcard-tag tag-p">URL + UTM</span></div>
-    <div class="utm-wrap">
-      <div class="ef-group">
-        <div class="ef-label">Destination URL</div>
-        <input type="text" class="ef" id="utm-base" placeholder="https://angloville.com/apply/" oninput="utmPrev()">
-      </div>
-      <div class="utm-grid">
-        <div class="ef-group"><div class="ef-label">utm_source</div><input type="text" class="ef" id="utm-src" value="mailchimp" oninput="utmPrev()"></div>
-        <div class="ef-group"><div class="ef-label">utm_medium</div><input type="text" class="ef" id="utm-med" value="email" oninput="utmPrev()"></div>
-        <div class="ef-group"><div class="ef-label">utm_campaign</div><input type="text" class="ef" id="utm-cmp" value="${esc(market+'-campaign')}" oninput="utmPrev()"></div>
-        <div class="ef-group"><div class="ef-label">utm_content</div><input type="text" class="ef" id="utm-cnt" placeholder="cta_button" oninput="utmPrev()"></div>
-      </div>
-      <div class="ef-label"><span>Full URL</span><button class="btn-cp" onclick="cp2(buildUrl(),this)">copy</button></div>
-      <div class="utm-out" id="utm-out">← fill in URL above</div>
+  // Link info from Step 3
+  h+=`<div class="rcard" style="background:#F7FBFF;border-color:#CCE8F8">
+    <div class="rcard-head"><span class="rcard-tag tag-p">🔗 Links (from Step 3)</span></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+      <div style="font-size:11px;color:var(--sub)">🟡 Primary: <strong style="color:var(--txt);word-break:break-all">${esc(buildUrl(1)||'nie ustawiono')}</strong></div>
+      <div style="font-size:11px;color:var(--sub)">🔵 Secondary: <strong style="color:var(--txt);word-break:break-all">${esc(buildUrl(2)||'nie ustawiono')}</strong></div>
     </div>
+    <div style="margin-top:6px;font-size:10px;color:var(--sub)">← Zmień linki i UTM w kroku 3 wyżej</div>
   </div>`;
 
   h+=rcard('A/B Subject Variants','tag-p',[
@@ -1209,8 +1249,10 @@ function renderResults(c,progs){
 // ═══════════════════════════════════════════════════════════
 //  UTM
 // ═══════════════════════════════════════════════════════════
-function buildUrl(){
-  const base=(document.getElementById('utm-base')?.value||'').trim();
+function buildUrl(which){
+  const base1=(document.getElementById('utm-base')?.value||'').trim();
+  const base2=(document.getElementById('utm-base2')?.value||'').trim();
+  const base = which===2 ? (base2||base1) : base1;
   if(!base) return '';
   const pts=[];
   [['utm-src','utm_source'],['utm-med','utm_medium'],['utm-cmp','utm_campaign'],['utm-cnt','utm_content']].forEach(([id,k])=>{
@@ -1219,12 +1261,15 @@ function buildUrl(){
   });
   return base+(pts.length?(base.includes('?')?'&':'?')+pts.join('&'):'');
 }
-function utmPrev(){const el=document.getElementById('utm-out');if(el)el.textContent=buildUrl()||'← fill in URL above';}
+function utmPrev(){
+  const el1=document.getElementById('utm-out1');if(el1)el1.textContent=buildUrl(1)||'← wpisz URL wyżej';
+  const el2=document.getElementById('utm-out2');if(el2)el2.textContent=buildUrl(2)||'← wpisz URL wyżej';
+}
 
 // ═══════════════════════════════════════════════════════════
 //  EMAIL HTML BUILDER — clean editorial style (like EF/screenshot)
 // ═══════════════════════════════════════════════════════════
-function buildEmailHTML(c, ctaUrl, imgs) {
+function buildEmailHTML(c, ctaUrl1, ctaUrl2, imgs) {
   const FONT = "Arial,'Helvetica Neue',Helvetica,sans-serif";
   const e = s => String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
   const footerHtml = getFooterHtml();
@@ -1254,8 +1299,8 @@ function buildEmailHTML(c, ctaUrl, imgs) {
 
   const heroImg = imgs[0] ? imgRow(imgs[0].thumb||imgs[0].url) : '';
 
-  const greetingLine = c.showGreeting !== false
-    ? `<p style="margin:0 0 14px;font-size:17px;color:#111;font-family:${FONT};">Hi <strong>*|FNAME|*</strong>,</p>` : '';
+  const greetingLine = c.greetingHtml
+    ? `<p style="margin:0 0 14px;font-size:17px;color:#111;font-family:${FONT};">${c.greetingHtml}</p>` : '';
   const intro = `
 <tr><td style="padding:20px 20px 0;font-family:${FONT};font-size:16px;line-height:170%;color:#333;">
   ${greetingLine}<p style="margin:0;">${e(c.intro)}</p>
@@ -1265,7 +1310,7 @@ function buildEmailHTML(c, ctaUrl, imgs) {
 <tr><td style="padding:24px 20px 0;">
   <table border="0" cellpadding="0" cellspacing="0" width="100%" style="border-collapse:collapse;">
     <tr><td align="center" bgcolor="#FCD23A" style="border-radius:50px;padding:18px 20px;">
-      <a href="${ctaUrl}" target="_blank"
+      <a href="${ctaUrl1}" target="_blank"
         style="color:#111111;text-decoration:none;font-weight:800;font-family:${FONT};font-size:17px;display:block;">${e(c.cta)}</a>
     </td></tr>
   </table>
@@ -1299,7 +1344,7 @@ function buildEmailHTML(c, ctaUrl, imgs) {
 <tr><td style="padding:14px 20px 24px;">
   <table border="0" cellpadding="0" cellspacing="0" width="100%" style="border-collapse:collapse;">
     <tr><td align="center" bgcolor="#3A9AD9" style="border-radius:50px;padding:16px 20px;">
-      <a href="${ctaUrl}" target="_blank"
+      <a href="${ctaUrl2}" target="_blank"
         style="color:#FFFFFF;text-decoration:none;font-weight:800;font-family:${FONT};font-size:16px;display:block;">${e(c.cta2||c.cta)}</a>
     </td></tr>
   </table>
@@ -1307,7 +1352,9 @@ function buildEmailHTML(c, ctaUrl, imgs) {
 
   const img4 = imgs[3] ? imgRow(imgs[3].thumb||imgs[3].url) : '';
 
-  const rows = [logoBar,headline,heroImg,intro,cta1,p1,img2,p2,img3,p3,ps,cta2,img4].filter(Boolean).join('\n');
+  const socialRow = buildSocialRow();
+
+  const rows = [logoBar,headline,heroImg,intro,cta1,p1,img2,p2,img3,p3,ps,cta2,img4,socialRow].filter(Boolean).join('\n');
 
   return `<div style="background:#EBEBEB;padding:0;">
 <style>
@@ -1344,8 +1391,10 @@ function setPreviewMode(mode){
   }
 }
 function showPreview(){
-  const c=getCurrent(); const url=buildUrl()||'https://angloville.com/apply/';
-  document.getElementById('prev-content').innerHTML=buildEmailHTML(c,url,[selHero,...selBody].filter(Boolean));
+  const c=getCurrent();
+  const url1=buildUrl(1)||'https://angloville.com/apply/';
+  const url2=buildUrl(2)||url1;
+  document.getElementById('prev-content').innerHTML=buildEmailHTML(c,url1,url2,[selHero,...selBody].filter(Boolean));
   setPreviewMode('desktop');
   document.getElementById('prev-modal').classList.add('open');
 }
@@ -1360,12 +1409,12 @@ async function sendMC(){
   document.getElementById('mc-status').innerHTML='';
   const all=MKT[market].groups.flatMap(g=>g.progs);
   const name=[...selected].map(id=>all.find(p=>p.id===id)?.t||id).join(' + ');
-  const c=getCurrent();const url=buildUrl()||'https://angloville.com/apply/';
+  const c=getCurrent();const url1=buildUrl(1)||'https://angloville.com/apply/';const url2=buildUrl(2)||url1;
   try{
     const res=await fetch('/api/proxy',{method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({action:'mailchimp_draft',campaign:c,cta_url:url,
+      body:JSON.stringify({action:'mailchimp_draft',campaign:c,cta_url:url1,cta_url2:url2,
         images:[selHero,...selBody].filter(i=>i&&!i.url.startsWith('data:')),
-        program_name:name,footer_html:getFooterHtml()})
+        program_name:name,footer_html:getFooterHtml(),social_html:buildSocialRow()})
     });
     const data=await res.json();
     if(!data.ok) throw new Error(data.error||'Mailchimp error');
@@ -1381,30 +1430,103 @@ async function sendMC(){
 }
 
 // ═══════════════════════════════════════════════════════════
+//  GREETING
+// ═══════════════════════════════════════════════════════════
+const GREET_MAP = {
+  'hi-fname':'Hi <strong>*|FNAME|*</strong>,',
+  'hello':'Hello!',
+  'dzien-dobry':'Dzień dobry <strong>*|FNAME|*</strong>!',
+  'czesc':'Cześć <strong>*|FNAME|*</strong>!',
+  'ciao':'Ciao <strong>*|FNAME|*</strong>!',
+  'buongiorno':'Buongiorno <strong>*|FNAME|*</strong>!',
+};
+let activeGreeting = 'none';
+function setGreeting(id){
+  activeGreeting = id;
+  // Toggle button styles
+  document.querySelectorAll('[id^="greet-"][id$="-btn"]').forEach(b=>b.classList.remove('on'));
+  const btn = document.getElementById('greet-'+id+'-btn');
+  if(btn) btn.classList.add('on');
+  // Show/hide custom input
+  const customEl = document.getElementById('greeting-custom');
+  if(customEl) customEl.style.display = id==='custom-g' ? 'block' : 'none';
+  // Set value
+  const valEl = document.getElementById('greeting-val');
+  if(valEl) valEl.value = id==='none' ? '' : (id==='custom-g' ? customEl?.value||'' : GREET_MAP[id]||'');
+}
+function updateGreetingVal(){
+  const valEl = document.getElementById('greeting-val');
+  const customEl = document.getElementById('greeting-custom');
+  if(valEl && customEl) valEl.value = customEl.value;
+}
+
+// ═══════════════════════════════════════════════════════════
+//  SOCIAL MEDIA
+// ═══════════════════════════════════════════════════════════
+const SOCIAL_LINKS = {
+  com: {
+    facebook: 'https://www.facebook.com/angloville',
+    instagram: 'https://www.instagram.com/angloville/',
+    youtube: 'https://www.youtube.com/@Angloville',
+    tiktok: 'https://www.tiktok.com/@angloville',
+  },
+  pl: {
+    facebook: 'https://www.facebook.com/angloville.pl',
+    instagram: 'https://www.instagram.com/angloville.pl/',
+    youtube: 'https://www.youtube.com/@AnglovillePL',
+    tiktok: 'https://www.tiktok.com/@angloville.pl',
+  },
+  it: {
+    facebook: 'https://www.facebook.com/angloville.it',
+    instagram: 'https://www.instagram.com/angloville.it/',
+    youtube: 'https://www.youtube.com/@AnglovilleIT',
+    tiktok: 'https://www.tiktok.com/@angloville.it',
+  },
+};
+
+function buildSocialRow(){
+  const links = SOCIAL_LINKS[market] || SOCIAL_LINKS.com;
+  const FONT = "Arial,'Helvetica Neue',Helvetica,sans-serif";
+  const icon = (url, label, svg) => url ? `<a href="${url}" target="_blank" style="display:inline-block;margin:0 6px;text-decoration:none;color:#999999;font-size:12px;">${label}</a>` : '';
+  return `
+<tr><td style="padding:20px 20px 8px;text-align:center;border-top:1px solid #EEEEEE;">
+  <div style="font-family:${FONT};font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#BBBBBB;margin-bottom:10px;">Follow us</div>
+  <div>
+    ${links.facebook?`<a href="${links.facebook}" target="_blank" style="display:inline-block;margin:0 8px;"><img src="https://cdn-images.mailchimp.com/icons/social-block-v3/block-v11/color-facebook-96.png" alt="Facebook" width="28" height="28" style="border:0;"></a>`:''}
+    ${links.instagram?`<a href="${links.instagram}" target="_blank" style="display:inline-block;margin:0 8px;"><img src="https://cdn-images.mailchimp.com/icons/social-block-v3/block-v11/color-instagram-96.png" alt="Instagram" width="28" height="28" style="border:0;"></a>`:''}
+    ${links.youtube?`<a href="${links.youtube}" target="_blank" style="display:inline-block;margin:0 8px;"><img src="https://cdn-images.mailchimp.com/icons/social-block-v3/block-v11/color-youtube-96.png" alt="YouTube" width="28" height="28" style="border:0;"></a>`:''}
+    ${links.tiktok?`<a href="${links.tiktok}" target="_blank" style="display:inline-block;margin:0 8px;"><img src="https://cdn-images.mailchimp.com/icons/social-block-v3/block-v11/color-tiktok-96.png" alt="TikTok" width="28" height="28" style="border:0;"></a>`:''}
+  </div>
+</td></tr>`;
+}
+
+// ═══════════════════════════════════════════════════════════
 //  HELPERS
 // ═══════════════════════════════════════════════════════════
 function renderGreetingPreview(){ /* preview updates via getCurrent */ }
 function getCurrent(){
   const g=id=>(document.getElementById(id)?.value||'').trim();
   const gh=id=>(document.getElementById(id)?.innerHTML||'').trim();
-  const showGreeting = document.getElementById('show-greeting')?.checked !== false;
+  const greetingHtml = g('greeting-val');
   return{subject:g('e-sub'),subject_emoji:g('e-sub-em'),preheader:g('e-pre'),
-    headline:g('e-h1'),intro:g('e-intro'),showGreeting,
+    headline:g('e-h1'),intro:g('e-intro'),greetingHtml,
     body_p1:gh('e-p1'),body_p2:gh('e-p2'),body_p3:gh('e-p3'),
     cta:g('e-cta1'),cta2:g('e-cta2'),ps:g('e-ps'),ab1:g('e-ab1'),ab2:g('e-ab2')};
 }
 function cpHtml(btn){
   const c=getCurrent();
-  const url=buildUrl()||'https://angloville.com/apply/';
+  const url1=buildUrl(1)||'https://angloville.com/apply/';
+  const url2=buildUrl(2)||url1;
   const imgs=[selHero,...selBody].filter(Boolean);
-  const html=buildEmailHTML(c,url,imgs);
+  const html=buildEmailHTML(c,url1,url2,imgs);
   cp2(html,btn);
 }
 function cpAll(){
   const c=getCurrent();
   navigator.clipboard.writeText(['SUBJECT: '+c.subject,'WITH EMOJI: '+c.subject_emoji,
     'PREHEADER: '+c.preheader,'',c.headline,'',c.intro,'',c.body_p1,'',c.body_p2,'',c.body_p3,'',
-    '[ '+c.cta+' ]',buildUrl()?'URL: '+buildUrl():'',c.ps?'PS: '+c.ps:''].filter(Boolean).join('\n'));
+    '[ '+c.cta+' ]',buildUrl(1)?'PRIMARY URL: '+buildUrl(1):'',
+    buildUrl(2)?'SECONDARY URL: '+buildUrl(2):'',c.ps?'PS: '+c.ps:''].filter(Boolean).join('\n'));
 }
 function cp(id,btn){cp2((document.getElementById(id)?.value||''),btn);}
 function cp2(text,btn){
