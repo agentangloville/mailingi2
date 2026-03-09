@@ -772,14 +772,14 @@ input.ef:focus,textarea.ef:focus{outline:none;border-color:var(--b)}
 <div class="modal" id="prev-modal">
   <div class="modal-box desktop-mode" id="prev-modal-box">
     <div class="modal-head">
-      <span>Email Preview</span>
+      <span id="prev-title">Email Preview</span>
       <div style="display:flex;align-items:center;gap:4px;">
         <button class="prev-mode-btn active" id="prev-desktop-btn" onclick="setPreviewMode('desktop')">🖥 Desktop</button>
         <button class="prev-mode-btn" id="prev-mobile-btn" onclick="setPreviewMode('mobile')">📱 Mobile</button>
         <button onclick="closePreview()" style="background:none;border:none;color:rgba(255,255,255,.6);font-size:18px;cursor:pointer;margin-left:6px;line-height:1;">✕</button>
       </div>
     </div>
-    <div style="background:#EBEBEB;padding:16px;overflow-y:auto;max-height:82vh;">
+    <div id="prev-body" style="background:#EBEBEB;padding:16px;overflow-y:auto;max-height:82vh;">
       <div id="prev-content"></div>
     </div>
   </div>
@@ -1973,31 +1973,66 @@ function buildPlaintextEmailHtml(c, url){
   const FONT="Arial,'Helvetica Neue',Helvetica,sans-serif";
   const footerHtml=getFooterHtml();
 
-  const ctaHtml = c.cta && url
-    ? `<p style="margin:18px 0;font-family:${FONT};font-size:15px;line-height:170%;color:#333;"><a href="${url}" style="color:#3A9AD9;font-weight:600;text-decoration:underline;">${c.cta}</a></p>`
+  const ctaHtml = c.cta && url && url!=='#'
+    ? `<p style="margin:14px 0;font-family:${FONT};font-size:14px;line-height:170%;color:#333;"><a href="${url}" style="color:#1a73e8;text-decoration:underline;">${c.cta}</a></p>`
     : '';
 
-  return `<div style="background:#F5F5F5;padding:0;">
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#F5F5F5;">
-<tr><td align="center" style="padding:20px 10px;">
-<table role="presentation" cellpadding="0" cellspacing="0" border="0"
-  width="580" style="max-width:580px;width:100%;background:#FFFFFF;border-radius:8px;overflow:hidden;">
-  <tr><td style="padding:32px 28px;font-family:${FONT};font-size:15px;line-height:180%;color:#333;">
-    <div style="margin-bottom:16px;">${c.greeting}</div>
-    <div style="margin-bottom:8px;">${c.body}</div>
-    ${ctaHtml}
-    <div style="margin-top:20px;padding-top:14px;border-top:1px solid #eee;color:#666;font-size:14px;">${c.closing}</div>
-  </td></tr>
-  <tr><td style="padding:14px 28px 20px;font-family:${FONT};font-size:11px;color:#AAAAAA;line-height:160%;border-top:1px solid #EEEEEE;">${footerHtml}</td></tr>
-</table>
-</td></tr></table></div>`;
+  // Flat HTML — no card, no background, no table wrapper — just like Gmail renders
+  return `<div style="font-family:${FONT};font-size:14px;line-height:170%;color:#222;">
+<div>${c.greeting}</div>
+<br>
+<div>${c.body}</div>
+${ctaHtml}
+<br>
+<div style="color:#555;">${c.closing}</div>
+<br>
+<div style="font-size:11px;color:#999;border-top:1px solid #ddd;padding-top:10px;margin-top:10px;">${footerHtml}</div>
+</div>`;
 }
 
 function showPlaintextPreview(){
   const c=getPlaintextCurrent();
   const url=buildUrl(1)||'#';
-  const html=buildPlaintextEmailHtml(c,url);
-  document.getElementById('prev-content').innerHTML=html;
+  const FONT="Arial,'Helvetica Neue',Helvetica,sans-serif";
+
+  // Build Gmail-like preview chrome
+  const senderNames={com:'Angloville Team',pl:'Zespół Angloville',it:'Team Angloville'};
+  const senderEmails={com:'hello@angloville.com',pl:'kontakt@angloville.pl',it:'info@angloville.it'};
+  const sender=senderNames[market]||'Angloville';
+  const senderEmail=senderEmails[market]||'hello@angloville.com';
+  const subject=c.subject||'(no subject)';
+  const fnTag=fnameTag();
+  const toName=selPlatform==='hs'?'{{ contact.firstname }}':'*|FNAME|*';
+
+  const gmailHtml=`
+  <div style="background:#fff;border-radius:0;font-family:${FONT};max-width:680px;margin:0 auto;">
+    <!-- Subject bar -->
+    <div style="padding:18px 20px 14px;border-bottom:1px solid #e8e8e8;">
+      <div style="font-size:20px;font-weight:400;color:#202124;line-height:1.3;">${esc(subject)}</div>
+    </div>
+    <!-- Sender row -->
+    <div style="padding:14px 20px;display:flex;align-items:flex-start;gap:10px;">
+      <div style="width:36px;height:36px;border-radius:50%;background:#1a73e8;color:#fff;font-size:16px;font-weight:500;display:flex;align-items:center;justify-content:center;flex-shrink:0;">${sender.charAt(0)}</div>
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:13px;color:#202124;"><strong>${esc(sender)}</strong> <span style="color:#5f6368;font-weight:400;">&lt;${esc(senderEmail)}&gt;</span></div>
+        <div style="font-size:12px;color:#5f6368;margin-top:1px;">to ${esc(toName)}</div>
+      </div>
+      <div style="font-size:11px;color:#5f6368;white-space:nowrap;">just now</div>
+    </div>
+    <!-- Email body -->
+    <div style="padding:4px 20px 28px 66px;font-size:14px;line-height:170%;color:#222;">
+      <div>${c.greeting}</div>
+      <br>
+      <div>${c.body}</div>
+      ${c.cta && url && url!=='#' ? '<p style="margin:14px 0;"><a href="'+url+'" style="color:#1a73e8;text-decoration:underline;">'+esc(c.cta)+'</a></p>' : ''}
+      <br>
+      <div style="color:#555;">${c.closing}</div>
+    </div>
+  </div>`;
+
+  document.getElementById('prev-content').innerHTML=gmailHtml;
+  document.getElementById('prev-body').style.background='#FFFFFF';
+  document.getElementById('prev-title').textContent='Gmail Preview';
   setPreviewMode('desktop');
   document.getElementById('prev-modal').classList.add('open');
 }
@@ -2160,6 +2195,8 @@ function showPreview(){
   const url1=buildUrl(1)||'https://angloville.com/apply/';
   const url2=buildUrl(2)||url1;
   document.getElementById('prev-content').innerHTML=buildEmailHTML(c,url1,url2,[selHero,...selBody].filter(Boolean));
+  document.getElementById('prev-body').style.background='#EBEBEB';
+  document.getElementById('prev-title').textContent='Email Preview';
   setPreviewMode('desktop');
   document.getElementById('prev-modal').classList.add('open');
 }
