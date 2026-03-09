@@ -445,6 +445,60 @@ input.ef:focus,textarea.ef:focus{outline:none;border-color:var(--b)}
   border:none;border-top:2px solid #EEEEEE;margin:8px 0;
 }
 
+/* Dates table toggle & editor */
+.dates-toggle{
+  display:flex;align-items:center;gap:10px;
+  padding:12px 16px;background:#FAFBFD;
+  border:1px solid var(--brd);border-radius:var(--radius);
+  margin-bottom:7px;cursor:pointer;transition:all .12s;
+}
+.dates-toggle:hover{border-color:var(--b)}
+.dates-toggle.on{border-color:var(--y);background:#FFFBEA}
+.dates-toggle-switch{
+  width:38px;height:22px;border-radius:11px;
+  background:#D1D5DB;position:relative;transition:background .2s;flex-shrink:0;
+}
+.dates-toggle.on .dates-toggle-switch{background:var(--y)}
+.dates-toggle-switch::after{
+  content:'';position:absolute;top:2px;left:2px;
+  width:18px;height:18px;border-radius:50%;
+  background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.15);
+  transition:transform .2s;
+}
+.dates-toggle.on .dates-toggle-switch::after{transform:translateX(16px)}
+.dates-toggle-lbl{font-size:13px;font-weight:600;color:var(--txt)}
+.dates-toggle-hint{font-size:11px;color:var(--sub);margin-left:auto}
+
+.dates-editor{display:none;margin-bottom:7px}
+.dates-editor.show{display:block}
+.dates-tbl{width:100%;border-collapse:collapse;font-size:12px}
+.dates-tbl th{
+  text-align:left;padding:7px 8px;font-size:10px;font-weight:700;
+  letter-spacing:1px;text-transform:uppercase;color:var(--sub);
+  border-bottom:2px solid var(--brd);background:#FAFBFD;
+}
+.dates-tbl td{padding:5px 8px;border-bottom:1px solid var(--brd);vertical-align:middle}
+.dates-tbl input{
+  width:100%;padding:5px 7px;border:1px solid var(--brd);border-radius:5px;
+  font-family:'DM Sans',sans-serif;font-size:12px;color:var(--txt);background:var(--w);
+}
+.dates-tbl input:focus{outline:none;border-color:var(--b)}
+.dates-rm{
+  background:none;border:none;color:#CC0000;font-size:14px;
+  cursor:pointer;padding:2px 6px;border-radius:4px;
+}
+.dates-rm:hover{background:#FFF2F2}
+.dates-add{
+  margin-top:6px;padding:6px 14px;background:transparent;
+  border:1.5px dashed var(--brd);color:var(--sub);
+  font-family:'DM Sans',sans-serif;font-size:11px;font-weight:600;
+  border-radius:7px;cursor:pointer;transition:all .12s;width:100%;
+}
+.dates-add:hover{border-color:var(--b);color:var(--b)}
+.dates-heading-input{
+  margin-bottom:8px;
+}
+
 /* MODAL */
 .modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:999;overflow-y:auto;padding:16px}
 .modal.open{display:flex;align-items:flex-start;justify-content:center}
@@ -909,6 +963,11 @@ let selFoot  = null;
 let selPlatform = 'mc'; // 'mc' = Mailchimp, 'hs' = HubSpot
 let libCat   = null;
 let activeSlot = 'hero'; // 'hero' or 'body' — which gallery is active
+
+// Dates table state
+let datesEnabled = false;
+let datesRows = []; // [{programme:'', dates:'', note:''}]
+let datesHeading = ''; // heading above the table
 
 // Mailchimp library state
 let mcImages   = [];
@@ -1488,6 +1547,93 @@ function rcard(tag,tagCls,fields,extraHead){
   return h+'</div>';
 }
 
+// ═══════════════════════════════════════════════════════════
+//  DATES TABLE
+// ═══════════════════════════════════════════════════════════
+function toggleDates(){
+  datesEnabled = !datesEnabled;
+  const toggle = document.querySelector('.dates-toggle');
+  const editor = document.getElementById('dates-editor');
+  if(toggle) toggle.classList.toggle('on', datesEnabled);
+  if(toggle){
+    const hint = toggle.querySelector('.dates-toggle-hint');
+    if(hint) hint.textContent = datesEnabled ? 'ON — tabela dat w mailu' : 'OFF — kliknij żeby włączyć';
+  }
+  if(editor) editor.classList.toggle('show', datesEnabled);
+  // Add one empty row if enabling with no rows
+  if(datesEnabled && !datesRows.length){
+    addDateRow();
+    // Set default heading
+    const defaultHeadings = {com:'Upcoming dates',pl:'Najbliższe terminy',it:'Prossime date'};
+    datesHeading = defaultHeadings[market] || 'Upcoming dates';
+    const hEl = document.getElementById('dates-heading');
+    if(hEl) hEl.value = datesHeading;
+  }
+}
+
+function addDateRow(){
+  datesRows.push({programme:'', dates:'', note:''});
+  renderDatesTable();
+}
+
+function removeDateRow(i){
+  datesRows.splice(i, 1);
+  renderDatesTable();
+}
+
+function updateDateRow(i, field, val){
+  if(datesRows[i]) datesRows[i][field] = val;
+}
+
+function renderDatesTable(){
+  const tbody = document.getElementById('dates-tbody');
+  if(!tbody) return;
+  tbody.innerHTML = datesRows.map((r,i) => `<tr>
+    <td><input type="text" value="${esc(r.programme)}" placeholder="np. Italy Junior" oninput="updateDateRow(${i},'programme',this.value)"></td>
+    <td><input type="text" value="${esc(r.dates)}" placeholder="21 Jun – 28 Jun" oninput="updateDateRow(${i},'dates',this.value)"></td>
+    <td><input type="text" value="${esc(r.note)}" placeholder="last spots!" oninput="updateDateRow(${i},'note',this.value)"></td>
+    <td><button type="button" class="dates-rm" onclick="removeDateRow(${i})">✕</button></td>
+  </tr>`).join('');
+}
+
+function buildDatesTableHtml(){
+  if(!datesEnabled || !datesRows.length) return '';
+  const FONT = "Arial,'Helvetica Neue',Helvetica,sans-serif";
+  const e = s => String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  const heading = datesHeading || '';
+  const validRows = datesRows.filter(r => r.programme || r.dates);
+  if(!validRows.length) return '';
+
+  const headingHtml = heading ? `<h2 style="margin:0 0 14px;font-family:${FONT};font-size:20px;font-weight:800;color:#111;letter-spacing:-.3px;">${e(heading)}</h2>` : '';
+
+  const rowsHtml = validRows.map(r => {
+    const noteHtml = r.note ? `<span style="display:inline-block;margin-left:8px;font-size:11px;font-weight:700;color:#E03E3E;background:#FFF2F2;padding:2px 8px;border-radius:10px;">${e(r.note)}</span>` : '';
+    return `<tr>
+      <td style="padding:10px 12px;border-bottom:1px solid #EEEEEE;font-family:${FONT};font-size:14px;font-weight:700;color:#111;">${e(r.programme)}</td>
+      <td style="padding:10px 12px;border-bottom:1px solid #EEEEEE;font-family:${FONT};font-size:14px;color:#333;">${e(r.dates)}${noteHtml}</td>
+    </tr>`;
+  }).join('');
+
+  const thLabels = {
+    com: ['Programme','Dates'],
+    pl: ['Program','Terminy'],
+    it: ['Programma','Date'],
+  };
+  const [thProg, thDates] = thLabels[market] || thLabels.com;
+
+  return `
+<tr><td style="padding:20px 20px 0;">
+  ${headingHtml}
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;border:1px solid #EEEEEE;border-radius:8px;">
+    <tr>
+      <td style="padding:8px 12px;font-family:${FONT};font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#999;background:#F9F9F9;border-bottom:2px solid #EEEEEE;">${e(thProg)}</td>
+      <td style="padding:8px 12px;font-family:${FONT};font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#999;background:#F9F9F9;border-bottom:2px solid #EEEEEE;">${e(thDates)}</td>
+    </tr>
+    ${rowsHtml}
+  </table>
+</td></tr>`;
+}
+
 function renderResults(c,progs){
   const all=MKT[market].groups.flatMap(g=>g.progs);
   const names=[...selected].map(id=>all.find(p=>p.id===id)?.t||id);
@@ -1556,6 +1702,41 @@ function renderResults(c,progs){
     </div>
   </div>`;
 
+  // ── DATES TABLE (optional) ──
+  const hasDates = c.dates_table && c.dates_table.length > 0;
+  if(hasDates && !datesRows.length){
+    datesEnabled = true;
+    datesRows = c.dates_table.map(d=>({programme:d.programme||'', dates:d.dates||'', note:d.note||''}));
+    const defaultHeadings = {com:'Upcoming dates',pl:'Najbliższe terminy',it:'Prossime date'};
+    datesHeading = defaultHeadings[market] || 'Upcoming dates';
+  }
+
+  h+=`<div class="dates-toggle${datesEnabled?' on':''}" onclick="toggleDates()">
+    <div class="dates-toggle-switch"></div>
+    <div class="dates-toggle-lbl">📅 Dates table</div>
+    <div class="dates-toggle-hint">${datesEnabled ? 'ON — tabela dat w mailu' : 'OFF — kliknij żeby włączyć'}</div>
+  </div>`;
+
+  h+=`<div class="dates-editor${datesEnabled?' show':''}" id="dates-editor">
+    <div class="rcard" style="border-color:#CCE8F8;background:#F7FBFF">
+      <div class="rcard-head"><span class="rcard-tag tag-b">📅 Dates Table</span></div>
+      <div class="dates-heading-input ef-group">
+        <div class="ef-label"><span>Nagłówek sekcji dat</span></div>
+        <input type="text" class="ef" id="dates-heading" value="${esc(datesHeading)}" placeholder="np. Najbliższe terminy" oninput="datesHeading=this.value">
+      </div>
+      <table class="dates-tbl" id="dates-tbl">
+        <thead><tr>
+          <th style="width:38%">Programme</th>
+          <th style="width:30%">Dates</th>
+          <th style="width:25%">Note</th>
+          <th style="width:7%"></th>
+        </tr></thead>
+        <tbody id="dates-tbody"></tbody>
+      </table>
+      <button type="button" class="dates-add" onclick="addDateRow()">+ Dodaj wiersz</button>
+    </div>
+  </div>`;
+
   h+=rcard('CTA Buttons + PS','tag-g',[
     ['e-cta1','Primary CTA (yellow button)',c.cta,1],
     ['e-cta2','Secondary CTA (blue button)',c.cta2||c.cta,1],
@@ -1593,6 +1774,7 @@ function renderResults(c,progs){
 
   const el=document.getElementById('results');
   el.innerHTML=h; el.style.display='block';
+  renderDatesTable();
   el.scrollIntoView({behavior:'smooth',block:'start'});
 }
 
@@ -1685,6 +1867,8 @@ function buildEmailHTML(c, ctaUrl1, ctaUrl2, imgs) {
   ${c.body_p3}
 </td></tr>`;
 
+  const datesTableRow = buildDatesTableHtml();
+
   const ps = c.ps ? `
 <tr><td style="padding:12px 20px 0;font-family:${FONT};font-size:14px;line-height:160%;color:#888888;font-style:italic;">
   <p style="margin:0;">${e(c.ps)}</p>
@@ -1711,7 +1895,7 @@ function buildEmailHTML(c, ctaUrl1, ctaUrl2, imgs) {
   </table>
 </td></tr>`;
 
-  const rows = [logoBar,headline,heroImg,intro,cta1,p1,img2,p2,img3,p3,ps,cta2,img4,dividerBeforeSocial,socialRow].filter(Boolean).join('\n');
+  const rows = [logoBar,headline,heroImg,intro,cta1,p1,img2,p2,img3,p3,datesTableRow,ps,cta2,img4,dividerBeforeSocial,socialRow].filter(Boolean).join('\n');
 
   return `<div style="background:#EBEBEB;padding:0;">
 <style>
@@ -1771,7 +1955,8 @@ async function sendMC(){
     const res=await fetch('/api/proxy',{method:'POST',headers:{'Content-Type':'application/json'},
       body:JSON.stringify({action:'mailchimp_draft',campaign:c,cta_url:url1,cta_url2:url2,
         images:[selHero,...selBody].filter(i=>i&&!i.url.startsWith('data:')),
-        program_name:name,footer_html:getFooterHtml(),social_html:buildSocialRow()})
+        program_name:name,footer_html:getFooterHtml(),social_html:buildSocialRow(),
+        dates_table_html:buildDatesTableHtml()})
     });
     const data=await res.json();
     if(!data.ok) throw new Error(data.error||'Mailchimp error');
@@ -1894,6 +2079,92 @@ function buildSocialRow(){
 }
 
 // ═══════════════════════════════════════════════════════════
+//  DATES TABLE
+// ═══════════════════════════════════════════════════════════
+function toggleDates(){
+  datesEnabled = !datesEnabled;
+  if(datesEnabled && !datesRows.length) addDateRow();
+  // Re-render toggle
+  const tog = document.querySelector('.dates-toggle');
+  if(tog){
+    tog.classList.toggle('on', datesEnabled);
+    tog.querySelector('.dates-toggle-hint').textContent = datesEnabled ? 'ON — tabela dat w mailu' : 'OFF — kliknij żeby włączyć';
+  }
+  const ed = document.getElementById('dates-editor');
+  if(ed) ed.classList.toggle('show', datesEnabled);
+}
+
+function renderDatesTable(){
+  const tbody = document.getElementById('dates-tbody');
+  if(!tbody) return;
+  tbody.innerHTML = datesRows.map((r,i) => `<tr>
+    <td><input type="text" value="${esc(r.programme)}" onchange="datesRows[${i}].programme=this.value" placeholder="np. Italy Junior"></td>
+    <td><input type="text" value="${esc(r.dates)}" onchange="datesRows[${i}].dates=this.value" placeholder="21 Jun – 28 Jun"></td>
+    <td><input type="text" value="${esc(r.note)}" onchange="datesRows[${i}].note=this.value" placeholder="last spots!"></td>
+    <td><button type="button" class="dates-rm" onclick="removeDateRow(${i})" title="Usuń">✕</button></td>
+  </tr>`).join('');
+}
+
+function addDateRow(){
+  datesRows.push({programme:'', dates:'', note:''});
+  renderDatesTable();
+}
+
+function removeDateRow(i){
+  datesRows.splice(i, 1);
+  renderDatesTable();
+  if(!datesRows.length){ datesEnabled = false; toggleDates(); toggleDates(); /* force re-render off */ }
+}
+
+function readDatesFromDOM(){
+  // Read current values from DOM inputs (in case user typed but didn't trigger onchange)
+  const rows = document.querySelectorAll('#dates-tbody tr');
+  rows.forEach((tr,i) => {
+    const inputs = tr.querySelectorAll('input');
+    if(datesRows[i] && inputs.length >= 3){
+      datesRows[i].programme = inputs[0].value;
+      datesRows[i].dates = inputs[1].value;
+      datesRows[i].note = inputs[2].value;
+    }
+  });
+  const headEl = document.getElementById('dates-heading');
+  if(headEl) datesHeading = headEl.value;
+}
+
+function buildDatesTableHtml(){
+  if(!datesEnabled || !datesRows.length) return '';
+  readDatesFromDOM();
+  const validRows = datesRows.filter(r => r.programme || r.dates);
+  if(!validRows.length) return '';
+  const FONT = "Arial,'Helvetica Neue',Helvetica,sans-serif";
+  const e = s => String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  const heading = datesHeading || 'Dates';
+
+  let tblRows = validRows.map(r => `
+    <tr>
+      <td style="padding:10px 12px;font-family:${FONT};font-size:14px;font-weight:700;color:#111;border-bottom:1px solid #EEEEEE;">${e(r.programme)}</td>
+      <td style="padding:10px 12px;font-family:${FONT};font-size:14px;color:#333;border-bottom:1px solid #EEEEEE;white-space:nowrap;">${e(r.dates)}</td>
+      <td style="padding:10px 12px;font-family:${FONT};font-size:13px;color:#E03E3E;font-weight:600;border-bottom:1px solid #EEEEEE;">${e(r.note)}</td>
+    </tr>`).join('');
+
+  return `
+<tr><td style="padding:20px 20px 0;">
+  <p style="margin:0 0 10px;font-family:${FONT};font-size:18px;font-weight:800;color:#111;">${e(heading)}</p>
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"
+    style="border-collapse:collapse;border:1px solid #EEEEEE;border-radius:10px;overflow:hidden;">
+    <thead>
+      <tr style="background:#F4F4F4;">
+        <th style="padding:10px 12px;font-family:${FONT};font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#666;text-align:left;border-bottom:2px solid #E0E0E0;">Programme</th>
+        <th style="padding:10px 12px;font-family:${FONT};font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#666;text-align:left;border-bottom:2px solid #E0E0E0;">Dates</th>
+        <th style="padding:10px 12px;font-family:${FONT};font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#666;text-align:left;border-bottom:2px solid #E0E0E0;"></th>
+      </tr>
+    </thead>
+    <tbody>${tblRows}</tbody>
+  </table>
+</td></tr>`;
+}
+
+// ═══════════════════════════════════════════════════════════
 //  HELPERS
 // ═══════════════════════════════════════════════════════════
 function renderGreetingPreview(){ /* preview updates via getCurrent */ }
@@ -1934,6 +2205,7 @@ function cp2(text,btn){
 function showErr(m){const el=document.getElementById('err-box');el.textContent=m;el.style.display='block';}
 function resetAll(){
   selected.clear();selHero=null;selBody=[];selFoot=null;libCat=null;activeCat=null;
+  datesEnabled=false;datesRows=[];datesHeading='';
   document.getElementById('extra').value='';
   document.getElementById('results').style.display='none';
   document.getElementById('results').innerHTML='';
