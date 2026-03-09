@@ -306,7 +306,7 @@ Return ONLY valid JSON, no markdown, no backticks.
 
     const headlineRow = `
 <tr><td style="padding:28px 20px 6px;">
-  <h1 style="margin:0;font-family:${FONT};font-size:28px;font-weight:900;line-height:115%;color:#111111;letter-spacing:-0.3px;">${e(campaign.headline)}</h1>
+  <h1 style="margin:0;font-family:${FONT};font-size:28px;font-weight:900;line-height:115%;color:#111111;letter-spacing:-0.3px;">${campaign.headline}</h1>
 </td></tr>`;
 
     const heroImg = imgs[0] ? `
@@ -319,7 +319,7 @@ Return ONLY valid JSON, no markdown, no backticks.
       ? `<p style="margin:0 0 14px;font-size:17px;color:#111;font-family:${FONT};">${campaign.greetingHtml}</p>` : '';
     const introRow = `
 <tr><td style="padding:20px 20px 0;font-family:${FONT};font-size:16px;line-height:170%;color:#333;">
-  ${greetingLine}<p style="margin:0;">${e(campaign.intro)}</p>
+  ${greetingLine}${safeHtml(campaign.intro)}
 </td></tr>`;
 
     const cta1Row = `
@@ -370,7 +370,14 @@ Return ONLY valid JSON, no markdown, no backticks.
 
     const socialRow = social_html || '';
 
-    const rows = [logoBar,headlineRow,heroImg,introRow,cta1Row,p1Row,img2Row,p2Row,img3Row,p3Row,psRow,cta2Row,img4Row,socialRow].filter(Boolean).join('\n');
+    const dividerBeforeSocial = `
+<tr><td style="padding:0 20px;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+    <tr><td style="border-top:2px solid #EEEEEE;font-size:0;line-height:0;">&nbsp;</td></tr>
+  </table>
+</td></tr>`;
+
+    const rows = [logoBar,headlineRow,heroImg,introRow,cta1Row,p1Row,img2Row,p2Row,img3Row,p3Row,psRow,cta2Row,img4Row,dividerBeforeSocial,socialRow].filter(Boolean).join('\n');
 
     const fullHtml = `<!DOCTYPE html>
 <html lang="en"><head>
