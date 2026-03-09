@@ -533,6 +533,35 @@ input.ef:focus,textarea.ef:focus{outline:none;border-color:var(--b)}
 .etype-wrap{
   display:flex;gap:6px;margin-bottom:12px;
 }
+
+/* PROMO CONTEXT (PL only) */
+.promo-wrap{display:none}
+.promo-wrap.show{display:block}
+.promo-seasons{display:flex;gap:4px;margin-bottom:10px}
+.promo-season-btn{
+  padding:7px 16px;border:1.5px solid var(--brd);background:var(--w);
+  border-radius:7px;cursor:pointer;font-family:'DM Sans',sans-serif;
+  font-size:12px;font-weight:600;color:var(--sub);transition:all .12s;
+}
+.promo-season-btn:hover{border-color:var(--b);color:var(--b)}
+.promo-season-btn.on{background:var(--dk);border-color:var(--dk);color:var(--y)}
+.promo-phases{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:10px}
+.promo-phase{
+  padding:8px 14px;border:1.5px solid var(--brd);background:var(--w);
+  border-radius:8px;cursor:pointer;font-family:'DM Sans',sans-serif;
+  font-size:12px;font-weight:600;color:var(--txt);transition:all .12s;
+  display:flex;align-items:center;gap:6px;
+}
+.promo-phase:hover{border-color:var(--y)}
+.promo-phase.on{border-color:var(--y);background:#FFFBEA}
+.promo-phase .pp-icon{font-size:15px}
+.promo-detail{
+  display:none;padding:12px 14px;
+  background:#FFFBEA;border:1.5px solid var(--y);border-radius:8px;
+  margin-top:6px;
+}
+.promo-detail.show{display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap}
+.promo-detail .ef-group{margin:0;flex:1;min-width:120px}
 .etype-btn{
   flex:1;display:flex;align-items:center;gap:10px;
   padding:14px 16px;border:2px solid var(--brd);
@@ -606,6 +635,21 @@ input.ef:focus,textarea.ef:focus{outline:none;border-color:var(--b)}
     <div class="step-body">
       <div id="prog-container"></div>
       <div class="sel-bar" id="sel-bar"></div>
+    </div>
+  </div>
+
+  <!-- PROMO CONTEXT (PL only) -->
+  <div class="step collapsible promo-wrap" id="promo-step">
+    <div class="step-head" onclick="toggleStep('promo-step')">
+      <div class="step-num" style="background:var(--y);color:var(--dk)">%</div>
+      <div class="step-lbl">Promocja czasowa</div>
+      <span class="step-summary" id="step-promo-sum">Brak</span>
+      <div class="step-chevron">▼</div>
+    </div>
+    <div class="step-body">
+      <div class="promo-seasons" id="promo-seasons"></div>
+      <div class="promo-phases" id="promo-phases"></div>
+      <div class="promo-detail" id="promo-detail"></div>
     </div>
   </div>
 
@@ -1064,11 +1108,35 @@ let cldLoaded     = false;
 let cldLoading    = false;
 let cldNextCursor = null;
 
+// Promo context state (PL only)
+let promoSeason = null;  // 'wakacje' or 'ferie'
+let promoPhase  = null;  // phase id or null
+let promoDate   = '';     // editable deadline
+let promoDiscount = '';   // e.g. '-15%', '-500 zł'
+
+const PROMO_DATA = {
+  wakacje: {
+    label: '🏖 Wakacje',
+    phases: [
+      {id:'super-early', icon:'🔥', name:'Super Early Bird', defaultDate:'31.03', desc:'Najwcześniejsza zniżka'},
+      {id:'early',       icon:'⏰', name:'Early Bird',       defaultDate:'30.05', desc:'Przed sezonem'},
+    ]
+  },
+  ferie: {
+    label: '❄️ Ferie zimowe',
+    phases: [
+      {id:'super-early', icon:'🔥', name:'Super Early Bird', defaultDate:'30.10', desc:'Najwcześniejsza zniżka'},
+      {id:'black-week',  icon:'🖤', name:'Black Week',       defaultDate:'30.11', desc:'Koniec listopada'},
+    ]
+  },
+};
+
 // ═══════════════════════════════════════════════════════════
 //  INIT / MARKET SWITCH
 // ═══════════════════════════════════════════════════════════
 function setMarket(mkt, btn) {
   market = mkt; selected.clear(); selHero = null; selBody = []; selFoot = null; libCat = null; activeCat = null;
+  promoSeason = null; promoPhase = null; promoDate = ''; promoDiscount = '';
   document.querySelectorAll('.mkt-pill').forEach(t=>t.classList.remove('active'));
   btn.classList.add('active');
   document.getElementById('extra').placeholder = MKT[mkt].ph;
@@ -1082,7 +1150,103 @@ function setMarket(mkt, btn) {
 function renderAll(){
   renderProgs(); updateSelBar();
   initLibCat(); renderLibTabs(); renderGallery('hero'); renderGallery('body');
-  renderSelImages(); renderFooters(); updateStepSummaries();
+  renderSelImages(); renderFooters(); renderPromo(); updateStepSummaries();
+}
+
+// ═══════════════════════════════════════════════════════════
+//  PROMO CONTEXT (PL only)
+// ═══════════════════════════════════════════════════════════
+function renderPromo(){
+  const wrap = document.getElementById('promo-step');
+  if(!wrap) return;
+  // Only show for PL market
+  wrap.classList.toggle('show', market === 'pl');
+  if(market !== 'pl') return;
+
+  // Season tabs
+  const seasonsEl = document.getElementById('promo-seasons');
+  seasonsEl.innerHTML = `<button type="button" class="promo-season-btn${promoSeason===null?' on':''}" onclick="selectPromoSeason(null)">❌ Brak promocji</button>` +
+    Object.entries(PROMO_DATA).map(([key,s])=>
+      `<button type="button" class="promo-season-btn${promoSeason===key?' on':''}" onclick="selectPromoSeason('${key}')">${s.label}</button>`
+    ).join('');
+
+  // Phase pills
+  const phasesEl = document.getElementById('promo-phases');
+  const detailEl = document.getElementById('promo-detail');
+  if(!promoSeason){
+    phasesEl.innerHTML = '';
+    detailEl.classList.remove('show');
+    return;
+  }
+
+  const season = PROMO_DATA[promoSeason];
+  phasesEl.innerHTML = season.phases.map(p =>
+    `<button type="button" class="promo-phase${promoPhase===p.id?' on':''}" onclick="selectPromoPhase('${p.id}')">
+      <span class="pp-icon">${p.icon}</span>
+      <div><div style="font-size:12px;font-weight:700">${p.name}</div><div style="font-size:10px;color:var(--sub)">${p.desc}</div></div>
+    </button>`
+  ).join('');
+
+  // Detail row
+  if(promoPhase){
+    const phase = season.phases.find(p=>p.id===promoPhase);
+    const yr = new Date().getFullYear();
+    if(!promoDate && phase) promoDate = phase.defaultDate + '.' + yr;
+    detailEl.classList.add('show');
+    detailEl.innerHTML = `
+      <div class="ef-group">
+        <div class="ef-label"><span>📅 Deadline promocji</span></div>
+        <input type="text" class="ef" id="promo-date-input" value="${esc(promoDate)}" placeholder="np. 31.03.2026" oninput="promoDate=this.value">
+      </div>
+      <div class="ef-group">
+        <div class="ef-label"><span>💰 Zniżka (opcjonalnie)</span></div>
+        <input type="text" class="ef" id="promo-discount-input" value="${esc(promoDiscount)}" placeholder="np. -15%, -500 zł" oninput="promoDiscount=this.value">
+      </div>`;
+  } else {
+    detailEl.classList.remove('show');
+  }
+  updateStepSummaries();
+}
+
+function selectPromoSeason(key){
+  promoSeason = key;
+  promoPhase = null;
+  promoDate = '';
+  promoDiscount = '';
+  // Auto-select first phase if season chosen
+  if(key && PROMO_DATA[key]){
+    const first = PROMO_DATA[key].phases[0];
+    if(first){
+      promoPhase = first.id;
+      const yr = new Date().getFullYear();
+      promoDate = first.defaultDate + '.' + yr;
+    }
+  }
+  renderPromo();
+}
+
+function selectPromoPhase(id){
+  if(promoPhase === id){ promoPhase = null; promoDate = ''; promoDiscount = ''; }
+  else {
+    promoPhase = id;
+    const season = PROMO_DATA[promoSeason];
+    const phase = season?.phases.find(p=>p.id===id);
+    const yr = new Date().getFullYear();
+    promoDate = phase ? phase.defaultDate + '.' + yr : '';
+    promoDiscount = '';
+  }
+  renderPromo();
+}
+
+function getPromoContext(){
+  if(market !== 'pl' || !promoSeason || !promoPhase) return '';
+  const season = PROMO_DATA[promoSeason];
+  const phase = season?.phases.find(p=>p.id===promoPhase);
+  if(!phase) return '';
+  let ctx = `PROMO CONTEXT (treat as secondary info, not the main topic): ${phase.name} promotion, deadline: ${promoDate || 'TBD'}.`;
+  if(promoDiscount) ctx += ` Discount: ${promoDiscount}.`;
+  ctx += ` Mention this naturally as urgency/limitation near the end or in PS — do NOT make it the headline or main focus of the email.`;
+  return ctx;
 }
 
 function setEmailType(type){
@@ -1119,6 +1283,18 @@ function updateStepSummaries(){
   const foot = opts.find(f=>f.id===selFoot)||opts[0];
   const footSum = document.getElementById('step-footer-sum');
   if(footSum) footSum.textContent = foot ? foot.name : 'Default';
+
+  // Promo summary
+  const promoSum = document.getElementById('step-promo-sum');
+  if(promoSum){
+    if(promoSeason && promoPhase){
+      const season = PROMO_DATA[promoSeason];
+      const phase = season?.phases.find(p=>p.id===promoPhase);
+      promoSum.textContent = phase ? phase.name + (promoDate ? ' → ' + promoDate : '') : 'Brak';
+    } else {
+      promoSum.textContent = 'Brak';
+    }
+  }
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -1417,11 +1593,14 @@ async function generate(){
   document.getElementById('results').style.display='none';
   document.getElementById('gen-btn').disabled=true;
 
+  const promoCtx = getPromoContext();
+  const extraText = [document.getElementById('extra').value, promoCtx].filter(Boolean).join('\n\n');
+
   try{
     const res=await fetch('/api/proxy',{
       method:'POST',headers:{'Content-Type':'application/json'},
       body:JSON.stringify({action:'generate',market,lang:M.lang,brand:M.brand,
-        programmes:progs,extra:document.getElementById('extra').value,
+        programmes:progs,extra:extraText,
         imageCount:emailType==='plaintext'?0:((selHero?1:0)+selBody.length),
         emailType})
     });
@@ -2575,6 +2754,7 @@ function resetAll(){
   selected.clear();selHero=null;selBody=[];selFoot=null;libCat=null;activeCat=null;
   datesEnabled=false;datesRows=[];datesHeading='';
   emailType='marketing';
+  promoSeason=null;promoPhase=null;promoDate='';promoDiscount='';
   document.getElementById('extra').value='';
   document.getElementById('results').style.display='none';
   document.getElementById('results').innerHTML='';
