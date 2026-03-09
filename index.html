@@ -382,9 +382,9 @@ input.ef:focus,textarea.ef:focus{outline:none;border-color:var(--b)}
   cursor:pointer;flex-shrink:0;
 }
 .rte-content{
-  padding:8px 11px;min-height:68px;
-  font-family:'DM Sans',sans-serif;font-size:13px;
-  color:var(--txt);line-height:1.6;outline:none;
+  padding:10px 13px;min-height:120px;
+  font-family:'DM Sans',sans-serif;font-size:14px;
+  color:var(--txt);line-height:1.7;outline:none;
 }
 .rte-content p{margin:0 0 5px}
 .rte-content p:last-child{margin-bottom:0}
@@ -501,6 +501,41 @@ input.ef:focus,textarea.ef:focus{outline:none;border-color:var(--b)}
 
 /* MODAL */
 .modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:999;overflow-y:auto;padding:16px}
+
+/* EMAIL TYPE TOGGLE */
+.etype-wrap{
+  display:flex;gap:6px;margin-bottom:12px;
+}
+.etype-btn{
+  flex:1;display:flex;align-items:center;gap:10px;
+  padding:14px 16px;border:2px solid var(--brd);
+  background:var(--w);border-radius:10px;cursor:pointer;
+  font-family:'DM Sans',sans-serif;text-align:left;
+  transition:all .15s;position:relative;
+}
+.etype-btn:hover{border-color:#b8baff}
+.etype-btn.on{border-color:var(--y);background:#FFFBEA;box-shadow:0 0 0 3px rgba(245,200,0,.12)}
+.etype-btn.on::after{
+  content:'✓';position:absolute;top:8px;right:8px;
+  font-size:9px;font-weight:900;color:var(--dk);
+  background:var(--y);width:18px;height:18px;border-radius:4px;
+  display:flex;align-items:center;justify-content:center;
+}
+.etype-icon{font-size:22px;flex-shrink:0}
+.etype-t{font-size:13px;font-weight:700;color:var(--txt);margin-bottom:2px}
+.etype-d{font-size:11px;color:var(--sub);line-height:1.4}
+
+/* PLAIN TEXT PREVIEW */
+.pt-preview{
+  background:#FFFFFF;border-radius:10px;
+  padding:28px 32px;font-family:Arial,sans-serif;
+  font-size:14px;color:#333;line-height:1.7;
+  max-width:620px;margin:0 auto;
+  box-shadow:0 1px 4px rgba(0,0,0,.08);
+}
+.pt-preview .pt-greeting{margin-bottom:12px}
+.pt-preview .pt-body p{margin:0 0 12px}
+.pt-preview .pt-sig{margin-top:20px;color:#666;font-size:13px;border-top:1px solid #eee;padding-top:14px}
 .modal.open{display:flex;align-items:flex-start;justify-content:center}
 .modal-box{background:#EEE;border-radius:14px;width:100%;max-width:680px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.4)}
 .modal-box.desktop-mode{max-width:680px;}
@@ -683,6 +718,33 @@ input.ef:focus,textarea.ef:focus{outline:none;border-color:var(--b)}
     <div class="step-body">
       <textarea class="notes" id="extra" rows="3"
         placeholder="e.g. Early bird discount ends Friday, only 5 spots left, focus on summer dates 21 June – 8 August…"></textarea>
+    </div>
+  </div>
+
+  <!-- EMAIL TYPE SELECTOR -->
+  <div class="step">
+    <div class="step-head">
+      <div class="step-num">6</div>
+      <div class="step-lbl">Email type</div>
+      <div class="step-hint">Marketing campaign or personal email</div>
+    </div>
+    <div class="step-body">
+      <div class="etype-wrap">
+        <button type="button" class="etype-btn on" id="etype-mkt" onclick="setEmailType('marketing')">
+          <div class="etype-icon">📣</div>
+          <div>
+            <div class="etype-t">Marketing Campaign</div>
+            <div class="etype-d">Branded HTML email z hero image, CTA buttons, logo bar i footer</div>
+          </div>
+        </button>
+        <button type="button" class="etype-btn" id="etype-pt" onclick="setEmailType('plaintext')">
+          <div class="etype-icon">✉️</div>
+          <div>
+            <div class="etype-t">Personal Email</div>
+            <div class="etype-d">Zwykły tekst jak od człowieka — person-to-person, bez grafik i przycisków</div>
+          </div>
+        </button>
+      </div>
     </div>
   </div>
 
@@ -961,6 +1023,7 @@ let selHero  = null;   // single hero image {url, thumb, label}
 let selBody  = [];     // max 2 body images
 let selFoot  = null;
 let selPlatform = 'mc'; // 'mc' = Mailchimp, 'hs' = HubSpot
+let emailType   = 'marketing'; // 'marketing' or 'plaintext'
 let libCat   = null;
 let activeSlot = 'hero'; // 'hero' or 'body' — which gallery is active
 
@@ -1003,6 +1066,15 @@ function renderAll(){
   renderProgs(); updateSelBar();
   initLibCat(); renderLibTabs(); renderGallery('hero'); renderGallery('body');
   renderSelImages(); renderFooters();
+}
+
+function setEmailType(type){
+  emailType = type;
+  document.getElementById('etype-mkt').classList.toggle('on', type==='marketing');
+  document.getElementById('etype-pt').classList.toggle('on', type==='plaintext');
+  // Update generate button label
+  const lbl = document.querySelector('.btn-label');
+  if(lbl) lbl.textContent = type==='plaintext' ? 'Generate Personal Email' : 'Generate Campaign';
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -1299,13 +1371,15 @@ async function generate(){
       method:'POST',headers:{'Content-Type':'application/json'},
       body:JSON.stringify({action:'generate',market,lang:M.lang,brand:M.brand,
         programmes:progs,extra:document.getElementById('extra').value,
-        imageCount:(selHero?1:0)+selBody.length})
+        imageCount:emailType==='plaintext'?0:((selHero?1:0)+selBody.length),
+        emailType})
     });
     const raw=await res.text();
     let data;
     try{data=JSON.parse(raw);}catch{showErr('Server error: '+raw.slice(0,300));return;}
     if(!data.ok) throw new Error(data.error||'Unknown error');
-    renderResults(data.campaign,progs);
+    if(emailType==='plaintext') renderPlaintextResults(data.campaign,progs);
+    else renderResults(data.campaign,progs);
   }catch(e){showErr('Error: '+e.message);}
 
   document.getElementById('loader-wrap').style.display='none';
@@ -1478,7 +1552,7 @@ function renderEmojiPicker(pickerId, query){
   // Category tabs
   const catTabs = Object.entries(EMOJI_DATA).map(([name,{icon}])=>
     `<button type="button" class="emoji-cat-btn${_epCat===name?' on':''}"
-      onmousedown="event.preventDefault();_epCat='${name.replace(/'/g,"\\'")}';renderEmojiPicker('${pickerId}',document.querySelector('#${pickerId} .emoji-search')?.value||'')"
+      onmousedown="event.preventDefault();_epCat='${name.replace(/'/g,"\\'")}';updateEmojiGrid('${pickerId}')"
       title="${name}">${icon}</button>`
   ).join('');
 
@@ -1500,15 +1574,33 @@ function renderEmojiPicker(pickerId, query){
     ).join('');
   }
 
-  el.innerHTML = `
-    <div class="emoji-search-wrap">
-      <input type="text" class="emoji-search" placeholder="🔍 Szukaj emoji… np. heart, fire, polska"
-        value="${esc(q)}"
-        oninput="renderEmojiPicker('${pickerId}',this.value)"
-        onkeydown="if(event.key==='Escape'){document.querySelectorAll('.emoji-pop.open').forEach(p=>p.classList.remove('open'));}">
-    </div>
-    ${q ? '' : '<div class="emoji-cats">'+catTabs+'</div>'}
-    <div class="emoji-grid">${gridHtml}</div>`;
+  // Check if structure already exists (search input rendered) — if so, only update grid + cats
+  const existingSearch = el.querySelector('.emoji-search');
+  if(existingSearch){
+    const catsEl = el.querySelector('.emoji-cats-wrap');
+    if(catsEl) catsEl.innerHTML = q ? '' : '<div class="emoji-cats">'+catTabs+'</div>';
+    const gridEl = el.querySelector('.emoji-grid');
+    if(gridEl) gridEl.innerHTML = gridHtml;
+  } else {
+    // First render — build full structure
+    el.innerHTML = `
+      <div class="emoji-search-wrap">
+        <input type="text" class="emoji-search" placeholder="🔍 Szukaj emoji… np. heart, fire, polska"
+          value="${esc(q)}"
+          oninput="updateEmojiGrid('${pickerId}')"
+          onkeydown="if(event.key==='Escape'){document.querySelectorAll('.emoji-pop.open').forEach(p=>p.classList.remove('open'));}">
+      </div>
+      <div class="emoji-cats-wrap">${q ? '' : '<div class="emoji-cats">'+catTabs+'</div>'}</div>
+      <div class="emoji-grid">${gridHtml}</div>`;
+  }
+}
+
+function updateEmojiGrid(pickerId){
+  const el = document.getElementById(pickerId);
+  if(!el) return;
+  const searchInput = el.querySelector('.emoji-search');
+  const q = searchInput ? searchInput.value : '';
+  renderEmojiPicker(pickerId, q);
 }
 
 function rteInsertText(editorId, text){
@@ -1776,6 +1868,138 @@ function renderResults(c,progs){
   el.innerHTML=h; el.style.display='block';
   renderDatesTable();
   el.scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+// ═══════════════════════════════════════════════════════════
+//  PLAIN TEXT RESULTS
+// ═══════════════════════════════════════════════════════════
+function renderPlaintextResults(c, progs){
+  const all=MKT[market].groups.flatMap(g=>g.progs);
+  const names=[...selected].map(id=>all.find(p=>p.id===id)?.t||id);
+
+  let h=`<div class="res-banner">
+    <div class="res-banner-left">
+      <div class="tag">✉️ Personal Email Ready</div>
+      <div class="meta">${esc(names.join(' + '))}</div>
+    </div>
+    <div class="res-actions">
+      <button class="btn-ghost" onclick="showPlaintextPreview()">👁 Preview</button>
+      <button class="btn-ghost" id="cp-pt-btn" onclick="cpPlaintext(this)">📋 Copy text</button>
+      <button class="btn-ghost" id="cp-pt-html-btn" onclick="cpPlaintextHtml(this)">⬇ Copy HTML</button>
+    </div>
+  </div>`;
+
+  h+=rcard('Subject Lines','tag-y',[
+    ['pt-sub','Subject',c.subject,1],
+    ['pt-sub-em','With emoji',c.subject_emoji||'',1],
+  ]);
+
+  h+=`<div class="rcard">
+    <div class="rcard-head"><span class="rcard-tag tag-b">✉️ Email Body</span></div>
+    <div class="ef-group">
+      <div class="ef-label"><span>Greeting</span></div>
+      ${rteField('pt-greeting', esc(c.greeting||''))}
+    </div>
+    <div class="ef-group">
+      <div class="ef-label"><span>Body — main content</span></div>
+      ${rteField('pt-body', textToHtml(c.body))}
+    </div>
+    <div class="ef-group">
+      <div class="ef-label"><span>CTA / link w tekście</span></div>
+      <input type="text" class="ef" id="pt-cta" value="${esc(c.cta||'')}">
+    </div>
+    <div class="ef-group">
+      <div class="ef-label"><span>Closing + signature</span></div>
+      ${rteField('pt-closing', textToHtml(c.closing||''))}
+    </div>
+  </div>`;
+
+  h+=rcard('A/B Subject Variants','tag-p',[
+    ['pt-ab1','Variant A',c.ab1||'',1],
+    ['pt-ab2','Variant B',c.ab2||'',1],
+  ]);
+
+  if(c.send_time) h+=`<div style="background:#F0FDF8;border:1px solid #C0E8D4;border-radius:9px;padding:10px 14px;font-size:12px;color:#2D7A5A;margin-bottom:8px">⏱ ${esc(c.send_time)}</div>`;
+
+  h+=`<div style="text-align:center;margin-top:20px"><button class="btn-out" onclick="resetAll()">← New campaign</button></div>`;
+
+  const el=document.getElementById('results');
+  el.innerHTML=h; el.style.display='block';
+  el.scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+function getPlaintextCurrent(){
+  const g=id=>(document.getElementById(id)?.value||'').trim();
+  const gh=id=>(document.getElementById(id)?.innerHTML||'').trim();
+  return {
+    subject: g('pt-sub'),
+    subject_emoji: g('pt-sub-em'),
+    greeting: gh('pt-greeting'),
+    body: gh('pt-body'),
+    cta: g('pt-cta'),
+    closing: gh('pt-closing'),
+  };
+}
+
+function stripHtml(html){
+  const tmp=document.createElement('div');
+  tmp.innerHTML=html;
+  return tmp.innerText||tmp.textContent||'';
+}
+
+function cpPlaintext(btn){
+  const c=getPlaintextCurrent();
+  const url=buildUrl(1)||'';
+  const lines=[
+    stripHtml(c.greeting),
+    '',
+    stripHtml(c.body),
+    '',
+    c.cta && url ? c.cta+': '+url : c.cta || '',
+    '',
+    stripHtml(c.closing),
+  ].filter((l,i,a)=>!(l===''&&a[i-1]==='')).join('\n').trim();
+  cp2(lines,btn);
+}
+
+function cpPlaintextHtml(btn){
+  const c=getPlaintextCurrent();
+  const url=buildUrl(1)||'#';
+  const html=buildPlaintextEmailHtml(c,url);
+  cp2(html,btn);
+}
+
+function buildPlaintextEmailHtml(c, url){
+  const FONT="Arial,'Helvetica Neue',Helvetica,sans-serif";
+  const footerHtml=getFooterHtml();
+
+  const ctaHtml = c.cta && url
+    ? `<p style="margin:18px 0;font-family:${FONT};font-size:15px;line-height:170%;color:#333;"><a href="${url}" style="color:#3A9AD9;font-weight:600;text-decoration:underline;">${c.cta}</a></p>`
+    : '';
+
+  return `<div style="background:#F5F5F5;padding:0;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#F5F5F5;">
+<tr><td align="center" style="padding:20px 10px;">
+<table role="presentation" cellpadding="0" cellspacing="0" border="0"
+  width="580" style="max-width:580px;width:100%;background:#FFFFFF;border-radius:8px;overflow:hidden;">
+  <tr><td style="padding:32px 28px;font-family:${FONT};font-size:15px;line-height:180%;color:#333;">
+    <div style="margin-bottom:16px;">${c.greeting}</div>
+    <div style="margin-bottom:8px;">${c.body}</div>
+    ${ctaHtml}
+    <div style="margin-top:20px;padding-top:14px;border-top:1px solid #eee;color:#666;font-size:14px;">${c.closing}</div>
+  </td></tr>
+  <tr><td style="padding:14px 28px 20px;font-family:${FONT};font-size:11px;color:#AAAAAA;line-height:160%;border-top:1px solid #EEEEEE;">${footerHtml}</td></tr>
+</table>
+</td></tr></table></div>`;
+}
+
+function showPlaintextPreview(){
+  const c=getPlaintextCurrent();
+  const url=buildUrl(1)||'#';
+  const html=buildPlaintextEmailHtml(c,url);
+  document.getElementById('prev-content').innerHTML=html;
+  setPreviewMode('desktop');
+  document.getElementById('prev-modal').classList.add('open');
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -2206,11 +2430,13 @@ function showErr(m){const el=document.getElementById('err-box');el.textContent=m
 function resetAll(){
   selected.clear();selHero=null;selBody=[];selFoot=null;libCat=null;activeCat=null;
   datesEnabled=false;datesRows=[];datesHeading='';
+  emailType='marketing';
   document.getElementById('extra').value='';
   document.getElementById('results').style.display='none';
   document.getElementById('results').innerHTML='';
   document.getElementById('err-box').style.display='none';
   document.getElementById('prog-hint').style.display='';
+  setEmailType('marketing');
   renderAll();
   window.scrollTo({top:0,behavior:'smooth'});
 }
