@@ -525,17 +525,6 @@ input.ef:focus,textarea.ef:focus{outline:none;border-color:var(--b)}
 .etype-t{font-size:13px;font-weight:700;color:var(--txt);margin-bottom:2px}
 .etype-d{font-size:11px;color:var(--sub);line-height:1.4}
 
-/* PLAIN TEXT PREVIEW */
-.pt-preview{
-  background:#FFFFFF;border-radius:10px;
-  padding:28px 32px;font-family:Arial,sans-serif;
-  font-size:14px;color:#333;line-height:1.7;
-  max-width:620px;margin:0 auto;
-  box-shadow:0 1px 4px rgba(0,0,0,.08);
-}
-.pt-preview .pt-greeting{margin-bottom:12px}
-.pt-preview .pt-body p{margin:0 0 12px}
-.pt-preview .pt-sig{margin-top:20px;color:#666;font-size:13px;border-top:1px solid #eee;padding-top:14px}
 .modal.open{display:flex;align-items:flex-start;justify-content:center}
 .modal-box{background:#EEE;border-radius:14px;width:100%;max-width:680px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.4)}
 .modal-box.desktop-mode{max-width:680px;}
@@ -1921,6 +1910,16 @@ function renderPlaintextResults(c, progs){
 
   if(c.send_time) h+=`<div style="background:#F0FDF8;border:1px solid #C0E8D4;border-radius:9px;padding:10px 14px;font-size:12px;color:#2D7A5A;margin-bottom:8px">⏱ ${esc(c.send_time)}</div>`;
 
+  h+=`<div class="mc-box">
+    <h3>📧 Send to Mailchimp</h3>
+    <p>Personal email — plain text style, full width, no images or buttons. Ready for Mailchimp.</p>
+    <div class="mc-btns">
+      <button class="btn-out" onclick="showPlaintextPreview()">👁 Preview email</button>
+      <button class="btn-gen" id="pt-mc-btn" onclick="sendPtMC()" style="padding:10px 22px;font-size:13px">📧 Create Mailchimp draft</button>
+    </div>
+    <div id="pt-mc-status"></div>
+  </div>`;
+
   h+=`<div style="text-align:center;margin-top:20px"><button class="btn-out" onclick="resetAll()">← New campaign</button></div>`;
 
   const el=document.getElementById('results');
@@ -1977,17 +1976,28 @@ function buildPlaintextEmailHtml(c, url){
     ? `<p style="margin:14px 0;font-family:${FONT};font-size:14px;line-height:170%;color:#333;"><a href="${url}" style="color:#1a73e8;text-decoration:underline;">${c.cta}</a></p>`
     : '';
 
-  // Flat HTML — no card, no background, no table wrapper — just like Gmail renders
-  return `<div style="font-family:${FONT};font-size:14px;line-height:170%;color:#222;">
-<div>${c.greeting}</div>
-<br>
-<div>${c.body}</div>
+  // Full-width email — no card, no grey background, no max-width box
+  // Just white background edge to edge, like a real person's email
+  return `<!DOCTYPE html>
+<html><head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+</head>
+<body style="margin:0;padding:0;background:#ffffff;-webkit-text-size-adjust:100%;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#ffffff;">
+<tr><td style="padding:20px 24px;font-family:${FONT};font-size:14px;line-height:180%;color:#222;">
+${c.greeting}
+<br><br>
+${c.body}
 ${ctaHtml}
 <br>
 <div style="color:#555;">${c.closing}</div>
-<br>
-<div style="font-size:11px;color:#999;border-top:1px solid #ddd;padding-top:10px;margin-top:10px;">${footerHtml}</div>
-</div>`;
+</td></tr>
+<tr><td style="padding:12px 24px 20px;font-family:${FONT};font-size:11px;color:#999;line-height:160%;border-top:1px solid #eee;">
+${footerHtml}
+</td></tr>
+</table>
+</body></html>`;
 }
 
 function showPlaintextPreview(){
@@ -2005,7 +2015,7 @@ function showPlaintextPreview(){
   const toName=selPlatform==='hs'?'{{ contact.firstname }}':'*|FNAME|*';
 
   const gmailHtml=`
-  <div style="background:#fff;border-radius:0;font-family:${FONT};max-width:680px;margin:0 auto;">
+  <div style="background:#fff;border-radius:0;font-family:${FONT};width:100%;margin:0;">
     <!-- Subject bar -->
     <div style="padding:18px 20px 14px;border-bottom:1px solid #e8e8e8;">
       <div style="font-size:20px;font-weight:400;color:#202124;line-height:1.3;">${esc(subject)}</div>
@@ -2020,7 +2030,7 @@ function showPlaintextPreview(){
       <div style="font-size:11px;color:#5f6368;white-space:nowrap;">just now</div>
     </div>
     <!-- Email body -->
-    <div style="padding:4px 20px 28px 66px;font-size:14px;line-height:170%;color:#222;">
+    <div style="padding:4px 20px 28px 66px;font-size:14px;line-height:180%;color:#222;">
       <div>${c.greeting}</div>
       <br>
       <div>${c.body}</div>
@@ -2228,6 +2238,36 @@ async function sendMC(){
     btn.textContent='✓ Done!';
   }catch(e){
     document.getElementById('mc-status').innerHTML=`<div class="err-box" style="display:block;margin-top:8px">Error: ${e.message}</div>`;
+    btn.disabled=false;btn.textContent='📧 Create Mailchimp draft';
+  }
+}
+
+async function sendPtMC(){
+  const btn=document.getElementById('pt-mc-btn');
+  btn.disabled=true;btn.textContent='Creating draft…';
+  document.getElementById('pt-mc-status').innerHTML='';
+  const all=MKT[market].groups.flatMap(g=>g.progs);
+  const name=[...selected].map(id=>all.find(p=>p.id===id)?.t||id).join(' + ');
+  const c=getPlaintextCurrent();
+  const url=buildUrl(1)||'https://angloville.com/apply/';
+  const fullHtml=buildPlaintextEmailHtml(c,url);
+  try{
+    const res=await fetch('/api/proxy',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({action:'mailchimp_draft_raw',
+        html:fullHtml,
+        subject:c.subject_emoji||c.subject,
+        preheader:'',
+        program_name:name})
+    });
+    const data=await res.json();
+    if(!data.ok) throw new Error(data.error||'Mailchimp error');
+    document.getElementById('pt-mc-status').innerHTML=`<div class="ok-box">
+      ✅ <strong>Draft created!</strong>
+      <a href="${data.draft_url}" target="_blank" style="color:#428BCA;font-weight:700;margin-left:6px;">→ Open in Mailchimp</a>
+    </div>`;
+    btn.textContent='✓ Done!';
+  }catch(e){
+    document.getElementById('pt-mc-status').innerHTML=`<div class="err-box" style="display:block;margin-top:8px">Error: ${e.message}</div>`;
     btn.disabled=false;btn.textContent='📧 Create Mailchimp draft';
   }
 }
