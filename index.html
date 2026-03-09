@@ -400,17 +400,44 @@ input.ef:focus,textarea.ef:focus{outline:none;border-color:var(--b)}
 /* Emoji picker popover */
 .emoji-pop{
   position:absolute;top:100%;left:0;z-index:50;
-  background:var(--w);border:1px solid var(--brd);border-radius:8px;
-  box-shadow:0 6px 20px rgba(0,0,0,.12);padding:6px;
-  display:none;width:260px;max-height:180px;overflow-y:auto;
+  background:var(--w);border:1px solid var(--brd);border-radius:10px;
+  box-shadow:0 8px 30px rgba(0,0,0,.16);
+  display:none;width:320px;overflow:hidden;
 }
-.emoji-pop.open{display:block}
-.emoji-pop button{
-  border:none;background:transparent;font-size:18px;
-  padding:3px;cursor:pointer;border-radius:4px;
-  width:32px;height:32px;display:inline-flex;align-items:center;justify-content:center;
+.emoji-pop.open{display:flex;flex-direction:column}
+.emoji-search-wrap{padding:8px 8px 4px;}
+.emoji-search{
+  width:100%;padding:7px 10px;border:1.5px solid var(--brd);border-radius:6px;
+  font-family:'DM Sans',sans-serif;font-size:12px;color:var(--txt);
+  background:#FAFBFD;outline:none;
 }
-.emoji-pop button:hover{background:#F0F0F0}
+.emoji-search:focus{border-color:var(--b)}
+.emoji-search::placeholder{color:var(--sub)}
+.emoji-cats{
+  display:flex;gap:1px;padding:0 6px;border-bottom:1px solid var(--brd);
+  overflow-x:auto;flex-shrink:0;
+}
+.emoji-cat-btn{
+  border:none;background:transparent;font-size:15px;
+  padding:5px 6px;cursor:pointer;border-radius:5px 5px 0 0;
+  opacity:.5;transition:all .12s;flex-shrink:0;
+}
+.emoji-cat-btn:hover{opacity:.85;background:#F0F0F0}
+.emoji-cat-btn.on{opacity:1;background:#FFFBEA;border-bottom:2px solid var(--y)}
+.emoji-grid{
+  display:flex;flex-wrap:wrap;padding:6px;gap:1px;
+  max-height:220px;overflow-y:auto;align-content:flex-start;
+}
+.emoji-grid button{
+  border:none;background:transparent;font-size:20px;
+  padding:2px;cursor:pointer;border-radius:5px;
+  width:34px;height:34px;display:inline-flex;align-items:center;justify-content:center;
+  transition:background .1s,transform .1s;
+}
+.emoji-grid button:hover{background:#F0F0F0;transform:scale(1.15)}
+.emoji-no-results{
+  padding:16px;text-align:center;font-size:12px;color:var(--sub);
+}
 .rte-toolbar{position:relative}
 
 /* Divider in email */
@@ -1235,21 +1262,101 @@ const RTE_COLORS = [
   {c:'#2ECC71',t:'Green'},{c:'#FFFFFF',t:'White'},
 ];
 
-const EMOJI_LIST = [
-  '🏡','✈️','🎓','🌍','🇵🇱','🇮🇹','🇬🇧','🇲🇹','🗽','🌴','⛩','🏖',
-  '🎒','🧒','👨‍👩‍👧','🏫','💻','🍁','🌊','🍕','🎡','🗾',
-  '✅','⭐','🔥','💡','📅','⏰','🎯','💰','🤝','❤️','👉','✨',
-  '📌','🎁','🏃','📋','🇹🇭','🇰🇷','🇯🇵','🇻🇳','😊','👋','🙌',
-];
+const EMOJI_DATA = {
+  '⭐ Popularne': {icon:'⭐',emojis:[
+    {e:'✅',k:'check yes ok'},{e:'⭐',k:'star'},{e:'🔥',k:'fire hot'},{e:'✨',k:'sparkle magic'},{e:'💡',k:'idea bulb'},{e:'❤️',k:'heart love'},
+    {e:'👉',k:'point right'},{e:'👋',k:'wave hello hi'},{e:'🙌',k:'hands celebrate'},{e:'💪',k:'muscle strong'},{e:'🎯',k:'target goal'},
+    {e:'💰',k:'money bag'},{e:'🎁',k:'gift present'},{e:'📌',k:'pin'},{e:'📅',k:'calendar date'},{e:'⏰',k:'clock time alarm'},
+    {e:'🤝',k:'handshake deal'},{e:'👍',k:'thumbs up'},{e:'🏆',k:'trophy winner'},{e:'🎉',k:'party tada celebrate'},
+    {e:'💯',k:'hundred percent perfect'},{e:'⚡',k:'lightning fast energy'},{e:'🚀',k:'rocket launch'},
+    {e:'📣',k:'megaphone announce'},{e:'🔔',k:'bell notification'},{e:'💬',k:'speech bubble chat'},
+    {e:'📧',k:'email mail letter'},{e:'🆓',k:'free gratis'},{e:'🆕',k:'new nowy'},
+    {e:'⚠️',k:'warning caution'},{e:'❗',k:'exclamation important'},{e:'❓',k:'question'},
+    {e:'🔗',k:'link chain url'},{e:'📎',k:'paperclip attach'},{e:'✏️',k:'pencil edit write'},
+  ]},
+  '😊 Twarze': {icon:'😊',emojis:[
+    {e:'😊',k:'smile happy'},{e:'😀',k:'grin happy'},{e:'😍',k:'love eyes heart'},{e:'🤩',k:'star struck excited'},
+    {e:'😎',k:'cool sunglasses'},{e:'🥳',k:'party celebrate'},{e:'😄',k:'laugh happy'},{e:'🤗',k:'hug warm'},
+    {e:'😇',k:'angel innocent'},{e:'🤔',k:'thinking hmm'},{e:'😮',k:'surprised wow'},{e:'😢',k:'cry sad'},
+    {e:'🫶',k:'heart hands love'},{e:'🥰',k:'love smiling hearts'},{e:'😁',k:'grin beam'},
+    {e:'👀',k:'eyes look see'},{e:'🫡',k:'salute respect'},{e:'😏',k:'smirk'},
+  ]},
+  '🏡 Angloville': {icon:'🏡',emojis:[
+    {e:'🏡',k:'house home village wioska'},{e:'🎓',k:'graduation education nauka learn'},
+    {e:'✈️',k:'airplane plane travel podróż lot'},{e:'🌍',k:'globe world earth świat'},
+    {e:'🗣️',k:'speaking talk mówić conversation'},{e:'📚',k:'books reading nauka study'},
+    {e:'🏫',k:'school szkoła liceum'},{e:'💻',k:'laptop computer online zdalnie'},
+    {e:'🎒',k:'backpack school plecak szkoła'},{e:'🧒',k:'child kid dziecko'},
+    {e:'👨‍👩‍👧',k:'family rodzina'},{e:'🏕️',k:'camp obóz kemping'},
+    {e:'🤝',k:'handshake meet people spotkanie'},{e:'📋',k:'clipboard list plan'},
+    {e:'🏃',k:'running sport activity aktywność'},{e:'🧑‍🏫',k:'teacher mentor nauczyciel'},
+    {e:'🗺️',k:'map mapa travel'},{e:'🎭',k:'arts culture kultura'},
+    {e:'🎤',k:'microphone speak talk conversation'},{e:'🏰',k:'castle zamek culture'},
+  ]},
+  '🇵🇱 Flagi': {icon:'🇵🇱',emojis:[
+    {e:'🇵🇱',k:'poland polska'},{e:'🇮🇹',k:'italy italia włochy'},{e:'🇬🇧',k:'uk england anglia wielkaBrytania'},
+    {e:'🇲🇹',k:'malta'},{e:'🇺🇸',k:'usa america ameryka stanyZjednoczone'},{e:'🇨🇦',k:'canada kanada'},
+    {e:'🇯🇵',k:'japan japonia'},{e:'🇰🇷',k:'korea południowa south'},{e:'🇹🇭',k:'thailand tajlandia'},
+    {e:'🇻🇳',k:'vietnam wietnam'},{e:'🇫🇷',k:'france francja'},{e:'🇩🇪',k:'germany niemcy'},
+    {e:'🇪🇸',k:'spain hiszpania'},{e:'🇧🇪',k:'belgium belgia'},{e:'🇳🇱',k:'netherlands holandia'},
+    {e:'🇦🇹',k:'austria'},{e:'🇨🇿',k:'czech czechy'},{e:'🇭🇺',k:'hungary węgry'},
+    {e:'🇱🇹',k:'lithuania litwa'},{e:'🇱🇻',k:'latvia łotwa'},{e:'🇪🇪',k:'estonia'},
+    {e:'🇪🇺',k:'eu europe europa unia'},{e:'🇦🇺',k:'australia'},
+  ]},
+  '🌴 Podróże': {icon:'🌴',emojis:[
+    {e:'🌴',k:'palm tropical tropik'},{e:'🗽',k:'statue liberty new york nowy jork'},
+    {e:'⛩',k:'shrine japan torii japonia'},{e:'🏖',k:'beach plaża morze'},
+    {e:'🎡',k:'ferris wheel london londyn'},{e:'🗾',k:'japan map japonia'},
+    {e:'🌊',k:'wave ocean morze baltic'},{e:'🍕',k:'pizza italy włochy'},
+    {e:'🍁',k:'maple leaf canada kanada jesień'},{e:'🏔️',k:'mountain góra'},
+    {e:'🏝️',k:'island wyspa'},{e:'🌅',k:'sunrise sunset zachód wschód'},
+    {e:'🚆',k:'train pociąg transport'},{e:'🚌',k:'bus autobus transport'},
+    {e:'🛫',k:'takeoff start odlot samolot'},{e:'🛬',k:'landing lądowanie przylot'},
+    {e:'🗼',k:'tower wieża paris paryż'},{e:'🌆',k:'city miasto skyline'},
+    {e:'🏛️',k:'museum muzeum classical'},{e:'⛱️',k:'beach umbrella parasol plaża'},
+    {e:'🧳',k:'luggage baggage walizka'},
+  ]},
+  '🍎 Jedzenie': {icon:'🍎',emojis:[
+    {e:'🍎',k:'apple jabłko'},{e:'☕',k:'coffee kawa'},{e:'🍽️',k:'plate dining jedzenie meal posiłek'},
+    {e:'🥐',k:'croissant breakfast śniadanie'},{e:'🍕',k:'pizza italy'},
+    {e:'🍝',k:'pasta spaghetti makaron'},{e:'🥗',k:'salad salátka healthy'},
+    {e:'🧁',k:'cupcake cake ciasto'},{e:'🍰',k:'cake tort'},{e:'🍷',k:'wine wino'},
+    {e:'🥤',k:'drink napój'},{e:'🍔',k:'burger hamburger'},{e:'🌮',k:'taco mexican'},
+    {e:'🥘',k:'cooking gotowanie pan'},{e:'🍳',k:'egg jajko breakfast'},
+  ]},
+  '⏰ Czas & Finanse': {icon:'⏰',emojis:[
+    {e:'⏰',k:'alarm clock czas time budzik'},{e:'📅',k:'calendar kalendarz date termin'},
+    {e:'⏳',k:'hourglass time waiting czekanie czas'},{e:'🕐',k:'clock one godzina'},
+    {e:'📆',k:'tear-off calendar kalendarz'},{e:'🗓️',k:'spiral calendar plan'},
+    {e:'💰',k:'money bag pieniądze'},{e:'💳',k:'credit card karta płatność payment'},
+    {e:'💸',k:'money wings wydatki spending'},{e:'🏷️',k:'tag price cena etykieta label'},
+    {e:'📉',k:'chart down spadek discount'},{e:'📈',k:'chart up wzrost growth'},
+    {e:'🎫',k:'ticket bilet'},{e:'🧾',k:'receipt paragon rachunek'},
+    {e:'💎',k:'gem diamond diament premium'},{e:'👑',k:'crown korona premium king'},
+    {e:'🆓',k:'free gratis darmowe bezpłatne'},
+  ]},
+  '🔢 Numery': {icon:'🔢',emojis:[
+    {e:'1️⃣',k:'one jeden'},{e:'2️⃣',k:'two dwa'},{e:'3️⃣',k:'three trzy'},
+    {e:'4️⃣',k:'four cztery'},{e:'5️⃣',k:'five pięć'},{e:'6️⃣',k:'six sześć'},
+    {e:'7️⃣',k:'seven siedem'},{e:'8️⃣',k:'eight osiem'},{e:'9️⃣',k:'nine dziewięć'},
+    {e:'🔟',k:'ten dziesięć'},{e:'0️⃣',k:'zero'},{e:'#️⃣',k:'hash number numer'},
+    {e:'🅰️',k:'a letter'},{e:'🅱️',k:'b letter'},{e:'🆎',k:'ab blood'},
+    {e:'➡️',k:'arrow right strzałka'},{e:'⬅️',k:'arrow left strzałka'},
+    {e:'⬆️',k:'arrow up strzałka góra'},{e:'⬇️',k:'arrow down strzałka dół'},
+    {e:'↗️',k:'arrow up right'},
+  ]},
+};
+
+// Flatten for search
+const ALL_EMOJIS = Object.entries(EMOJI_DATA).flatMap(([cat,{emojis}]) =>
+  emojis.map(em => ({...em, cat}))
+);
 
 function rteField(id, html, opts){
   opts = opts || {};
   const colorBtns = RTE_COLORS.map(({c,t})=>
     `<button type="button" class="rte-color-btn" title="${t}" style="background:${c};"
       onmousedown="event.preventDefault();rteCmd('foreColor','${c}')"></button>`
-  ).join('');
-  const emojiBtns = EMOJI_LIST.map(em =>
-    `<button type="button" onmousedown="event.preventDefault();rteInsertText('${id}','${em}')">${em}</button>`
   ).join('');
   return `<div class="rte-wrap">
     <div class="rte-toolbar" id="tb-${id}">
@@ -1268,12 +1375,12 @@ function rteField(id, html, opts){
       <div class="rte-sep"></div>
       ${colorBtns}
       <div class="rte-sep"></div>
-      <button type="button" class="rte-btn" title="Insert emoji" onmousedown="event.preventDefault();toggleEmojiPicker('ep-${id}')" style="font-size:14px">😊</button>
+      <button type="button" class="rte-btn" title="Insert emoji" onmousedown="event.preventDefault();toggleEmojiPicker('ep-${id}','${id}')" style="font-size:14px">😊</button>
       <button type="button" class="rte-btn" title="Insert divider" onmousedown="event.preventDefault();rteInsertDivider('${id}')" style="font-size:10px;width:32px">― ―</button>
       <button type="button" class="rte-btn" title="Clear formatting" onmousedown="event.preventDefault();rteCmd('removeFormat')" style="font-size:10px;width:32px">✕fmt</button>
       <div class="rte-sep"></div>
       <button class="btn-cp" style="font-size:10px" onmousedown="event.preventDefault();cp2(document.getElementById('${id}').innerText,this)">copy</button>
-      <div class="emoji-pop" id="ep-${id}">${emojiBtns}</div>
+      <div class="emoji-pop" id="ep-${id}"></div>
     </div>
     <div class="rte-content" id="${id}" contenteditable="true">${html}</div>
   </div>`;
@@ -1284,19 +1391,72 @@ function rteCmd(cmd, val){
 function rteFontSize(size){
   if(size) document.execCommand('fontSize', false, size);
 }
-function toggleEmojiPicker(id){
-  const el = document.getElementById(id);
+
+// ── EMOJI PICKER ──
+let _epEditorId = null; // which editor the picker is for
+let _epCat = null;      // active category
+
+function toggleEmojiPicker(pickerId, editorId){
+  const el = document.getElementById(pickerId);
   if(!el) return;
-  // Close all other pickers first
-  document.querySelectorAll('.emoji-pop.open').forEach(p=>{if(p.id!==id) p.classList.remove('open');});
-  el.classList.toggle('open');
+  // Close all other pickers
+  document.querySelectorAll('.emoji-pop.open').forEach(p=>{if(p.id!==pickerId) p.classList.remove('open');});
+  const wasOpen = el.classList.contains('open');
+  if(wasOpen){ el.classList.remove('open'); return; }
+  _epEditorId = editorId;
+  _epCat = Object.keys(EMOJI_DATA)[0];
+  renderEmojiPicker(pickerId, '');
+  el.classList.add('open');
+  // Focus search after render
+  setTimeout(()=>{const s=el.querySelector('.emoji-search');if(s)s.focus();},50);
 }
+
+function renderEmojiPicker(pickerId, query){
+  const el = document.getElementById(pickerId);
+  if(!el) return;
+  const q = (query||'').toLowerCase().trim();
+
+  // Category tabs
+  const catTabs = Object.entries(EMOJI_DATA).map(([name,{icon}])=>
+    `<button type="button" class="emoji-cat-btn${_epCat===name?' on':''}"
+      onmousedown="event.preventDefault();_epCat='${name.replace(/'/g,"\\'")}';renderEmojiPicker('${pickerId}',document.querySelector('#${pickerId} .emoji-search')?.value||'')"
+      title="${name}">${icon}</button>`
+  ).join('');
+
+  // Filter emojis
+  let filtered;
+  if(q){
+    filtered = ALL_EMOJIS.filter(em => em.e.includes(q) || em.k.toLowerCase().includes(q));
+  } else {
+    const catData = EMOJI_DATA[_epCat];
+    filtered = catData ? catData.emojis : ALL_EMOJIS;
+  }
+
+  let gridHtml;
+  if(filtered.length === 0){
+    gridHtml = `<div class="emoji-no-results">Brak wyników dla "${esc(q)}"</div>`;
+  } else {
+    gridHtml = filtered.map(em =>
+      `<button type="button" title="${esc(em.k)}" onmousedown="event.preventDefault();rteInsertText('${_epEditorId}','${em.e}')">${em.e}</button>`
+    ).join('');
+  }
+
+  el.innerHTML = `
+    <div class="emoji-search-wrap">
+      <input type="text" class="emoji-search" placeholder="🔍 Szukaj emoji… np. heart, fire, polska"
+        value="${esc(q)}"
+        oninput="renderEmojiPicker('${pickerId}',this.value)"
+        onkeydown="if(event.key==='Escape'){document.querySelectorAll('.emoji-pop.open').forEach(p=>p.classList.remove('open'));}">
+    </div>
+    ${q ? '' : '<div class="emoji-cats">'+catTabs+'</div>'}
+    <div class="emoji-grid">${gridHtml}</div>`;
+}
+
 function rteInsertText(editorId, text){
   const ed = document.getElementById(editorId);
   if(ed) ed.focus();
   document.execCommand('insertText', false, text);
-  // Close emoji picker
-  document.querySelectorAll('.emoji-pop.open').forEach(p=>p.classList.remove('open'));
+  // Don't close picker — let user add multiple emojis
 }
 function rteInsertDivider(editorId){
   const ed = document.getElementById(editorId);
