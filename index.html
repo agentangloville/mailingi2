@@ -389,6 +389,35 @@ input.ef:focus,textarea.ef:focus{outline:none;border-color:var(--b)}
 .rte-content p{margin:0 0 5px}
 .rte-content p:last-child{margin-bottom:0}
 
+/* Font size dropdown */
+.rte-fontsize{
+  padding:1px 4px;border:1px solid var(--brd);border-radius:4px;
+  font-family:'DM Sans',sans-serif;font-size:10px;color:var(--txt);
+  background:var(--w);cursor:pointer;height:24px;
+}
+.rte-fontsize:focus{outline:none;border-color:var(--b)}
+
+/* Emoji picker popover */
+.emoji-pop{
+  position:absolute;top:100%;left:0;z-index:50;
+  background:var(--w);border:1px solid var(--brd);border-radius:8px;
+  box-shadow:0 6px 20px rgba(0,0,0,.12);padding:6px;
+  display:none;width:260px;max-height:180px;overflow-y:auto;
+}
+.emoji-pop.open{display:block}
+.emoji-pop button{
+  border:none;background:transparent;font-size:18px;
+  padding:3px;cursor:pointer;border-radius:4px;
+  width:32px;height:32px;display:inline-flex;align-items:center;justify-content:center;
+}
+.emoji-pop button:hover{background:#F0F0F0}
+.rte-toolbar{position:relative}
+
+/* Divider in email */
+.email-divider{
+  border:none;border-top:2px solid #EEEEEE;margin:8px 0;
+}
+
 /* MODAL */
 .modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:999;overflow-y:auto;padding:16px}
 .modal.open{display:flex;align-items:flex-start;justify-content:center}
@@ -1206,10 +1235,21 @@ const RTE_COLORS = [
   {c:'#2ECC71',t:'Green'},{c:'#FFFFFF',t:'White'},
 ];
 
-function rteField(id, html){
+const EMOJI_LIST = [
+  '🏡','✈️','🎓','🌍','🇵🇱','🇮🇹','🇬🇧','🇲🇹','🗽','🌴','⛩','🏖',
+  '🎒','🧒','👨‍👩‍👧','🏫','💻','🍁','🌊','🍕','🎡','🗾',
+  '✅','⭐','🔥','💡','📅','⏰','🎯','💰','🤝','❤️','👉','✨',
+  '📌','🎁','🏃','📋','🇹🇭','🇰🇷','🇯🇵','🇻🇳','😊','👋','🙌',
+];
+
+function rteField(id, html, opts){
+  opts = opts || {};
   const colorBtns = RTE_COLORS.map(({c,t})=>
     `<button type="button" class="rte-color-btn" title="${t}" style="background:${c};"
       onmousedown="event.preventDefault();rteCmd('foreColor','${c}')"></button>`
+  ).join('');
+  const emojiBtns = EMOJI_LIST.map(em =>
+    `<button type="button" onmousedown="event.preventDefault();rteInsertText('${id}','${em}')">${em}</button>`
   ).join('');
   return `<div class="rte-wrap">
     <div class="rte-toolbar" id="tb-${id}">
@@ -1217,17 +1257,51 @@ function rteField(id, html){
       <button type="button" class="rte-btn" title="Italic" onmousedown="event.preventDefault();rteCmd('italic')"><i style="font-style:italic">I</i></button>
       <button type="button" class="rte-btn" title="Underline" onmousedown="event.preventDefault();rteCmd('underline')"><u>U</u></button>
       <div class="rte-sep"></div>
+      <select class="rte-fontsize" title="Font size" onchange="rteFontSize(this.value);this.value='';">
+        <option value="" disabled selected>Aa</option>
+        <option value="1">S — 12px</option>
+        <option value="3">M — 16px</option>
+        <option value="4">L — 18px</option>
+        <option value="5">XL — 22px</option>
+        <option value="6">XXL — 28px</option>
+      </select>
+      <div class="rte-sep"></div>
       ${colorBtns}
       <div class="rte-sep"></div>
-      <button type="button" class="rte-btn" title="Clear formatting" onmousedown="event.preventDefault();rteCmd('removeFormat')" style="font-size:10px;width:32px">✕ fmt</button>
+      <button type="button" class="rte-btn" title="Insert emoji" onmousedown="event.preventDefault();toggleEmojiPicker('ep-${id}')" style="font-size:14px">😊</button>
+      <button type="button" class="rte-btn" title="Insert divider" onmousedown="event.preventDefault();rteInsertDivider('${id}')" style="font-size:10px;width:32px">― ―</button>
+      <button type="button" class="rte-btn" title="Clear formatting" onmousedown="event.preventDefault();rteCmd('removeFormat')" style="font-size:10px;width:32px">✕fmt</button>
       <div class="rte-sep"></div>
       <button class="btn-cp" style="font-size:10px" onmousedown="event.preventDefault();cp2(document.getElementById('${id}').innerText,this)">copy</button>
+      <div class="emoji-pop" id="ep-${id}">${emojiBtns}</div>
     </div>
     <div class="rte-content" id="${id}" contenteditable="true">${html}</div>
   </div>`;
 }
 function rteCmd(cmd, val){
   document.execCommand(cmd, false, val||null);
+}
+function rteFontSize(size){
+  if(size) document.execCommand('fontSize', false, size);
+}
+function toggleEmojiPicker(id){
+  const el = document.getElementById(id);
+  if(!el) return;
+  // Close all other pickers first
+  document.querySelectorAll('.emoji-pop.open').forEach(p=>{if(p.id!==id) p.classList.remove('open');});
+  el.classList.toggle('open');
+}
+function rteInsertText(editorId, text){
+  const ed = document.getElementById(editorId);
+  if(ed) ed.focus();
+  document.execCommand('insertText', false, text);
+  // Close emoji picker
+  document.querySelectorAll('.emoji-pop.open').forEach(p=>p.classList.remove('open'));
+}
+function rteInsertDivider(editorId){
+  const ed = document.getElementById(editorId);
+  if(ed) ed.focus();
+  document.execCommand('insertHTML', false, '<hr class="email-divider" style="border:none;border-top:2px solid #EEEEEE;margin:12px 0;">');
 }
 function textToHtml(txt){
   // Convert newline-separated plain text to HTML paragraphs
@@ -1275,10 +1349,18 @@ function renderResults(c,progs){
     ['e-pre','Preheader',c.preheader,1],
   ]);
 
-  h+=rcard('Headline + Opening','tag-b',[
-    ['e-h1','Headline (H2 in email)',c.headline,1],
-    ['e-intro','Opening paragraph',c.intro,3],
-  ]);
+  // Headline + Opening — now with RTE
+  h+=`<div class="rcard">
+    <div class="rcard-head"><span class="rcard-tag tag-b">Headline + Opening</span></div>
+    <div class="ef-group">
+      <div class="ef-label"><span>Headline (H2 in email)</span></div>
+      ${rteField('e-h1', esc(c.headline))}
+    </div>
+    <div class="ef-group">
+      <div class="ef-label"><span>Opening paragraph</span></div>
+      ${rteField('e-intro', textToHtml(c.intro))}
+    </div>
+  </div>`;
   // Greeting per market
   const fn = fnameTag();
   const greetOpts = {
@@ -1402,7 +1484,7 @@ function buildEmailHTML(c, ctaUrl1, ctaUrl2, imgs) {
 
   const headline = `
 <tr><td style="padding:28px 20px 6px;">
-  <h1 style="margin:0;font-family:${FONT};font-size:26px;font-weight:900;line-height:118%;color:#111111;letter-spacing:-0.3px;">${e(c.headline)}</h1>
+  <h1 style="margin:0;font-family:${FONT};font-size:26px;font-weight:900;line-height:118%;color:#111111;letter-spacing:-0.3px;">${c.headline}</h1>
 </td></tr>`;
 
   const heroImg = imgs[0] ? imgRow(imgs[0].thumb||imgs[0].url) : '';
@@ -1411,7 +1493,7 @@ function buildEmailHTML(c, ctaUrl1, ctaUrl2, imgs) {
     ? `<p style="margin:0 0 14px;font-size:17px;color:#111;font-family:${FONT};">${c.greetingHtml}</p>` : '';
   const intro = `
 <tr><td style="padding:20px 20px 0;font-family:${FONT};font-size:16px;line-height:170%;color:#333;">
-  ${greetingLine}<p style="margin:0;">${e(c.intro)}</p>
+  ${greetingLine}${c.intro}
 </td></tr>`;
 
   const cta1 = `
@@ -1462,7 +1544,14 @@ function buildEmailHTML(c, ctaUrl1, ctaUrl2, imgs) {
 
   const socialRow = buildSocialRow();
 
-  const rows = [logoBar,headline,heroImg,intro,cta1,p1,img2,p2,img3,p3,ps,cta2,img4,socialRow].filter(Boolean).join('\n');
+  const dividerBeforeSocial = `
+<tr><td style="padding:0 20px;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+    <tr><td style="border-top:2px solid #EEEEEE;font-size:0;line-height:0;">&nbsp;</td></tr>
+  </table>
+</td></tr>`;
+
+  const rows = [logoBar,headline,heroImg,intro,cta1,p1,img2,p2,img3,p3,ps,cta2,img4,dividerBeforeSocial,socialRow].filter(Boolean).join('\n');
 
   return `<div style="background:#EBEBEB;padding:0;">
 <style>
@@ -1653,7 +1742,7 @@ function getCurrent(){
   const gh=id=>(document.getElementById(id)?.innerHTML||'').trim();
   const greetingHtml = g('greeting-val');
   return{subject:g('e-sub'),subject_emoji:g('e-sub-em'),preheader:g('e-pre'),
-    headline:g('e-h1'),intro:g('e-intro'),greetingHtml,
+    headline:gh('e-h1'),intro:gh('e-intro'),greetingHtml,
     body_p1:gh('e-p1'),body_p2:gh('e-p2'),body_p3:gh('e-p3'),
     cta:g('e-cta1'),cta2:g('e-cta2'),ps:g('e-ps'),ab1:g('e-ab1'),ab2:g('e-ab2')};
 }
@@ -1672,7 +1761,11 @@ function cpAll(){
     '[ '+c.cta+' ]',buildUrl(1)?'PRIMARY URL: '+buildUrl(1):'',
     buildUrl(2)?'SECONDARY URL: '+buildUrl(2):'',c.ps?'PS: '+c.ps:''].filter(Boolean).join('\n'));
 }
-function cp(id,btn){cp2((document.getElementById(id)?.value||''),btn);}
+function cp(id,btn){
+  const el = document.getElementById(id);
+  const text = el?.value !== undefined && el?.tagName !== 'DIV' ? el.value : (el?.innerText || '');
+  cp2(text, btn);
+}
 function cp2(text,btn){
   navigator.clipboard.writeText(text);
   const o=btn.textContent;btn.textContent='✓';btn.classList.add('ok');
@@ -1692,6 +1785,11 @@ function resetAll(){
 function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 
 // INIT
+document.addEventListener('click', function(ev){
+  if(!ev.target.closest('.emoji-pop') && !ev.target.closest('.rte-btn[title="Insert emoji"]')){
+    document.querySelectorAll('.emoji-pop.open').forEach(p=>p.classList.remove('open'));
+  }
+});
 if(document.readyState==='loading'){
   document.addEventListener('DOMContentLoaded', renderAll);
 } else {
