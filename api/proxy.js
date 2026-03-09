@@ -487,5 +487,51 @@ Return ONLY valid JSON, no markdown, no backticks.
     }
   }
 
+  // ── MAILCHIMP DRAFT — RAW HTML (for personal emails) ──
+  if (body.action === 'mailchimp_draft_raw') {
+    const mcKey  = process.env.MAILCHIMP_API_KEY;
+    const mcList = process.env.MAILCHIMP_LIST_ID;
+    if (!mcKey || !mcList) return res.status(200).json({ ok: true, draft_url: 'https://mailchimp.com', message: 'Mailchimp not configured' });
+
+    const { html, subject, preheader, program_name } = body;
+    const dc = mcKey.split('-')[1] || 'us1';
+
+    try {
+      const auth = 'Basic ' + Buffer.from('anystring:' + mcKey).toString('base64');
+      const createRes = await fetch(`https://${dc}.api.mailchimp.com/3.0/campaigns`, {
+        method: 'POST',
+        headers: { 'Authorization': auth, 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type: 'regular',
+          settings: {
+            subject_line: subject || 'Personal email',
+            preview_text: preheader || '',
+            title: `[PERSONAL] ${program_name || 'Email'} – ${new Date().toLocaleDateString('en-GB')}`,
+            from_name: 'Angloville',
+            reply_to: 'hello@angloville.com',
+            to_name: '*|FNAME|*',
+          },
+          recipients: { list_id: mcList },
+        }),
+      });
+      const createData = await createRes.json();
+      if (!createRes.ok) throw new Error(createData.detail || JSON.stringify(createData));
+      const campaignId = createData.id;
+
+      await fetch(`https://${dc}.api.mailchimp.com/3.0/campaigns/${campaignId}/content`, {
+        method: 'PUT',
+        headers: { 'Authorization': auth, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ html }),
+      });
+
+      return res.status(200).json({
+        ok: true,
+        draft_url: `https://${dc}.admin.mailchimp.com/campaigns/edit?id=${campaignId}`,
+      });
+    } catch (e) {
+      return res.status(500).json({ ok: false, error: e.message });
+    }
+  }
+
   return res.status(400).json({ ok: false, error: 'Unknown action' });
 };
