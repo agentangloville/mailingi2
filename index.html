@@ -1968,6 +1968,31 @@ function cpPlaintextHtml(btn){
   cp2(html,btn);
 }
 
+function buildPtSigBlock(FONT){
+  const siteUrls={com:'https://angloville.com',pl:'https://angloville.pl',it:'https://angloville.it'};
+  const siteUrl=siteUrls[market]||'https://angloville.com';
+  const links = getActiveSocialLinks()[0]; // primary social set
+
+  const socialLink = (url, label) => url
+    ? `<a href="${url}" target="_blank" style="color:#888;text-decoration:none;font-family:${FONT};font-size:11px;font-weight:500;">${label}</a>`
+    : '';
+
+  const socialParts = [
+    socialLink(links.instagram, 'Instagram'),
+    socialLink(links.youtube, 'YouTube'),
+    socialLink(links.tiktok, 'TikTok'),
+  ].filter(Boolean);
+
+  const socialLine = socialParts.length
+    ? `<div style="margin-top:8px;">${socialParts.join('<span style="color:#ccc;margin:0 6px;">·</span>')}</div>`
+    : '';
+
+  return `<div style="margin-top:20px;padding-top:14px;border-top:1px solid #e0e0e0;">
+<a href="${siteUrl}" target="_blank" style="text-decoration:none;display:inline-block;"><img src="https://mcusercontent.com/817823f284cb8a245fdb9d298/images/1551754b-a92b-4c6a-bb5a-156a3b75d2f4.png" alt="Angloville" height="20" style="display:block;height:20px;width:auto;border:0;"></a>
+${socialLine}
+</div>`;
+}
+
 function buildPlaintextEmailHtml(c, url){
   const FONT="Arial,'Helvetica Neue',Helvetica,sans-serif";
   const footerHtml=getFooterHtml();
@@ -1976,12 +2001,7 @@ function buildPlaintextEmailHtml(c, url){
     ? `<p style="margin:14px 0;font-family:${FONT};font-size:14px;line-height:170%;color:#333;"><a href="${url}" style="color:#1a73e8;text-decoration:underline;">${c.cta}</a></p>`
     : '';
 
-  const siteUrls={com:'https://angloville.com',pl:'https://angloville.pl',it:'https://angloville.it'};
-  const siteUrl=siteUrls[market]||'https://angloville.com';
-  const logoSig=`<div style="margin-top:16px;padding-top:12px;border-top:1px solid #e8e8e8;">
-<a href="${siteUrl}" target="_blank" style="text-decoration:none;"><img src="https://mcusercontent.com/817823f284cb8a245fdb9d298/images/1551754b-a92b-4c6a-bb5a-156a3b75d2f4.png" alt="Angloville" height="22" style="display:inline-block;height:22px;width:auto;border:0;opacity:.7;"></a>
-<div style="font-family:${FONT};font-size:11px;color:#999;margin-top:4px;"><a href="${siteUrl}" style="color:#999;text-decoration:none;">${siteUrl.replace('https://','')}</a></div>
-</div>`;
+  const sigBlock = buildPtSigBlock(FONT);
 
   // Full-width email — no card, no grey background, no max-width box
   // Just white background edge to edge, like a real person's email
@@ -1999,7 +2019,7 @@ ${c.body}
 ${ctaHtml}
 <br>
 <div style="color:#555;">${c.closing}</div>
-${logoSig}
+${sigBlock}
 </td></tr>
 <tr><td style="padding:12px 24px 20px;font-family:${FONT};font-size:11px;color:#999;line-height:160%;border-top:1px solid #eee;">
 ${footerHtml}
@@ -2016,13 +2036,12 @@ function showPlaintextPreview(){
   // Build Gmail-like preview chrome
   const senderNames={com:'Angloville Team',pl:'Zespół Angloville',it:'Team Angloville'};
   const senderEmails={com:'hello@angloville.com',pl:'kontakt@angloville.pl',it:'info@angloville.it'};
-  const siteUrlsPrev={com:'https://angloville.com',pl:'https://angloville.pl',it:'https://angloville.it'};
   const sender=senderNames[market]||'Angloville';
   const senderEmail=senderEmails[market]||'hello@angloville.com';
-  const siteUrlPrev=siteUrlsPrev[market]||'https://angloville.com';
   const subject=c.subject||'(no subject)';
   const fnTag=fnameTag();
   const toName=selPlatform==='hs'?'{{ contact.firstname }}':'*|FNAME|*';
+  const sigBlock=buildPtSigBlock(FONT);
 
   const gmailHtml=`
   <div style="background:#fff;border-radius:0;font-family:${FONT};width:100%;margin:0;">
@@ -2047,10 +2066,7 @@ function showPlaintextPreview(){
       ${c.cta && url && url!=='#' ? '<p style="margin:14px 0;"><a href="'+url+'" style="color:#1a73e8;text-decoration:underline;">'+esc(c.cta)+'</a></p>' : ''}
       <br>
       <div style="color:#555;">${c.closing}</div>
-      <div style="margin-top:16px;padding-top:12px;border-top:1px solid #e8e8e8;">
-        <img src="https://mcusercontent.com/817823f284cb8a245fdb9d298/images/1551754b-a92b-4c6a-bb5a-156a3b75d2f4.png" alt="Angloville" height="22" style="display:inline-block;height:22px;width:auto;border:0;opacity:.7;">
-        <div style="font-size:11px;color:#999;margin-top:4px;">${siteUrlPrev.replace('https://','')}</div>
-      </div>
+      ${sigBlock}
     </div>
   </div>`;
 
