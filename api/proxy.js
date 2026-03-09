@@ -12,14 +12,46 @@ module.exports = async function handler(req, res) {
 
   // ── GENERATE ──────────────────────────────────────────
   if (body.action === 'generate') {
-    const { market, lang, brand, programmes, extra, imageCount } = body;
+    const { market, lang, brand, programmes, extra, imageCount, emailType } = body;
     const progList = (programmes || []).map((p, i) => `${i + 1}. ${p}`).join('\n');
     const imgNote  = imageCount > 0 ? `The email will include ${imageCount} image(s).` : 'No images.';
     const langNote = lang === 'pl' ? 'Write EVERYTHING in Polish. Do NOT use English.'
       : lang === 'it' ? 'Write EVERYTHING in Italian. Do NOT use English.'
       : 'Write in British English (programme, colour, travelling, organised).';
 
-    const prompt = `You are an expert email marketing copywriter for Angloville.
+    let prompt;
+
+    if (emailType === 'plaintext') {
+      prompt = `You are writing a personal, human-sounding email on behalf of Angloville.
+
+BRAND CONTEXT:
+${brand}
+
+PROGRAMMES TO COVER:
+${progList}
+
+ADDITIONAL INSTRUCTIONS:
+${extra || 'None'}
+
+LANGUAGE RULE: ${langNote}
+
+STYLE: This is a PERSONAL email — like a real person writing from their inbox. No marketing buzzwords. No images. No buttons. No HTML formatting. Write naturally, warmly, as if you're emailing a friend or acquaintance. Be conversational. Use short paragraphs. Include a natural call-to-action as a simple text link or suggestion, not a button. The tone should feel genuine and helpful, not salesy.
+
+Return ONLY valid JSON, no markdown, no backticks.
+
+{
+  "subject": "casual but compelling subject line, max 55 chars, like a real person wrote it",
+  "subject_emoji": "same subject but with 1 emoji max 60 chars",
+  "greeting": "personal greeting e.g. Hi there, Cześć, Ciao",
+  "body": "3-5 short paragraphs of natural personal email. Separate paragraphs with newlines. Sound human, warm, conversational. Mention the programme naturally. Include a soft CTA.",
+  "cta": "short text for the link, e.g. Check it out here, Zobacz szczegóły",
+  "closing": "warm sign-off with name, e.g. Best,\\nKasia from Angloville",
+  "ab1": "A/B subject variant A",
+  "ab2": "A/B subject variant B",
+  "send_time": "best send day and time with short reason"
+}`;
+    } else {
+      prompt = `You are an expert email marketing copywriter for Angloville.
 
 BRAND CONTEXT:
 ${brand}
@@ -61,6 +93,7 @@ Return ONLY valid JSON, no markdown, no backticks.
   "send_time": "best send day and time with short reason",
   "dates_table": [{"programme":"Programme Name","dates":"21 Jun – 28 Jun 2026","note":"last spots!"}]
 }`;
+    }
 
     try {
       const aiRes = await fetch('https://api.anthropic.com/v1/messages', {
