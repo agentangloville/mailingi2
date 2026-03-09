@@ -219,6 +219,33 @@ textarea.notes:focus{outline:none;border-color:var(--b)}
 
 /* GENERATE BTN */
 .gen-row{margin-top:8px}
+
+/* COLLAPSIBLE STEPS */
+.step.collapsible .step-head{cursor:pointer;user-select:none;transition:background .12s}
+.step.collapsible .step-head:hover{background:#F0F1F5}
+.step.collapsible .step-body{display:none}
+.step.collapsible.open .step-body{display:block}
+.step-chevron{
+  margin-left:auto;font-size:12px;color:var(--sub);
+  transition:transform .2s;flex-shrink:0;
+}
+.step.collapsible.open .step-chevron{transform:rotate(180deg)}
+.step-summary{
+  font-size:11px;color:var(--b);font-weight:500;
+  margin-left:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:220px;
+}
+
+/* FOOTER EDIT SECTION */
+.footer-edit-wrap{display:none;margin-top:12px}
+.footer-edit-wrap.show{display:block}
+.footer-edit-btn{
+  display:inline-flex;align-items:center;gap:5px;
+  margin-top:8px;padding:6px 13px;background:transparent;
+  border:1.5px solid var(--brd);color:var(--sub);
+  font-family:'DM Sans',sans-serif;font-size:11px;font-weight:600;
+  border-radius:7px;cursor:pointer;transition:all .12s;
+}
+.footer-edit-btn:hover{border-color:var(--b);color:var(--b)}
 .btn-gen{
   display:flex;align-items:center;justify-content:center;gap:8px;
   width:100%;padding:16px 32px;
@@ -583,11 +610,12 @@ input.ef:focus,textarea.ef:focus{outline:none;border-color:var(--b)}
   </div>
 
   <!-- STEP 2: IMAGES -->
-  <div class="step">
-    <div class="step-head">
+  <div class="step collapsible" id="step-images">
+    <div class="step-head" onclick="toggleStep('step-images')">
       <div class="step-num">2</div>
       <div class="step-lbl">Choose images</div>
-      <div class="step-hint">Optional — select from Cloudinary library</div>
+      <span class="step-summary" id="step-images-sum">Optional</span>
+      <div class="step-chevron">▼</div>
     </div>
     <div class="step-body">
 
@@ -623,11 +651,12 @@ input.ef:focus,textarea.ef:focus{outline:none;border-color:var(--b)}
   </div>
 
   <!-- STEP 3: LINKS & UTM -->
-  <div class="step">
-    <div class="step-head">
+  <div class="step collapsible" id="step-utm">
+    <div class="step-head" onclick="toggleStep('step-utm')">
       <div class="step-num">3</div>
       <div class="step-lbl">Links & UTM</div>
-      <div class="step-hint">Set destination URLs and tracking</div>
+      <span class="step-summary" id="step-utm-sum">Optional</span>
+      <div class="step-chevron">▼</div>
     </div>
     <div class="step-body">
       <div class="utm-wrap">
@@ -664,11 +693,12 @@ input.ef:focus,textarea.ef:focus{outline:none;border-color:var(--b)}
   </div>
 
   <!-- STEP 4: FOOTER -->
-  <div class="step">
-    <div class="step-head">
+  <div class="step collapsible" id="step-footer">
+    <div class="step-head" onclick="toggleStep('step-footer')">
       <div class="step-num">4</div>
       <div class="step-lbl">Email footer</div>
-      <div class="step-hint">Choose domain footer</div>
+      <span class="step-summary" id="step-footer-sum">Default</span>
+      <div class="step-chevron">▼</div>
     </div>
     <div class="step-body">
       <!-- Platform toggle -->
@@ -680,7 +710,8 @@ input.ef:focus,textarea.ef:focus{outline:none;border-color:var(--b)}
         </div>
       </div>
       <div class="footer-grid" id="footer-grid"></div>
-      <div style="margin-top:12px">
+      <button type="button" class="footer-edit-btn" id="footer-edit-toggle" onclick="toggleFooterEdit()">✏️ Edytuj footer</button>
+      <div class="footer-edit-wrap" id="footer-edit-wrap">
         <div style="font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--sub);margin-bottom:5px;display:flex;justify-content:space-between;align-items:center">
           <span>Footer content — editable</span>
           <button class="btn-cp" onclick="resetFooter()">&#8635; Reset to default</button>
@@ -831,9 +862,6 @@ const FOOTERS = {
     {id:'pl-pl',name:'angloville.pl (PL)',prev:'kontakt@angloville.pl · Wypisz się · Polityka prywatności',
      mc:`Chcesz zmienić sposób otrzymywania emaili?<br>Możesz <a href="*|UPDATE_PROFILE|*" style="color:#555;text-decoration:underline;">zaktualizować preferencje</a> lub <a href="*|UNSUB|*" style="color:#555;text-decoration:underline;">wypisać się z listy</a>.<br><br>Administratorem Twoich danych jest Angloville Sp. z o.o. <a href="https://angloville.pl/polityka-prywatnosci/" style="color:#555;text-decoration:underline;">Polityka prywatności</a>`,
      hs:`Chcesz zmienić sposób otrzymywania emaili?<br>Możesz <a href="{{ unsubscribe_link_all }}" style="color:#555;text-decoration:underline;">zaktualizować preferencje</a> lub <a href="{{ unsubscribe_link }}" style="color:#555;text-decoration:underline;">wypisać się z listy</a>.<br><br>Administratorem Twoich danych jest Angloville Sp. z o.o. <a href="https://angloville.pl/polityka-prywatnosci/" style="color:#555;text-decoration:underline;">Polityka prywatności</a>`},
-    {id:'pl-biz',name:'angloville.pl – B2B',prev:'Firmy · Wypisz się · Polityka prywatności',
-     mc:`To jest wiadomość biznesowa. Możesz <a href="*|UPDATE_PROFILE|*" style="color:#555;text-decoration:underline;">zaktualizować preferencje</a> lub <a href="*|UNSUB|*" style="color:#555;text-decoration:underline;">wypisać się</a>.<br><br>Angloville Sp. z o.o. <a href="https://angloville.pl/polityka-prywatnosci/" style="color:#555;text-decoration:underline;">Polityka prywatności</a>`,
-     hs:`To jest wiadomość biznesowa. Możesz <a href="{{ unsubscribe_link_all }}" style="color:#555;text-decoration:underline;">zaktualizować preferencje</a> lub <a href="{{ unsubscribe_link }}" style="color:#555;text-decoration:underline;">wypisać się</a>.<br><br>Angloville Sp. z o.o. <a href="https://angloville.pl/polityka-prywatnosci/" style="color:#555;text-decoration:underline;">Polityka prywatności</a>`},
   ],
   it:[
     {id:'it-it',name:'angloville.it (IT)',prev:'info@angloville.it · Cancellati · Privacy Policy',
@@ -1054,16 +1082,43 @@ function setMarket(mkt, btn) {
 function renderAll(){
   renderProgs(); updateSelBar();
   initLibCat(); renderLibTabs(); renderGallery('hero'); renderGallery('body');
-  renderSelImages(); renderFooters();
+  renderSelImages(); renderFooters(); updateStepSummaries();
 }
 
 function setEmailType(type){
   emailType = type;
   document.getElementById('etype-mkt').classList.toggle('on', type==='marketing');
   document.getElementById('etype-pt').classList.toggle('on', type==='plaintext');
-  // Update generate button label
   const lbl = document.querySelector('.btn-label');
   if(lbl) lbl.textContent = type==='plaintext' ? 'Generate Personal Email' : 'Generate Campaign';
+}
+
+function toggleStep(id){
+  const el = document.getElementById(id);
+  if(el) el.classList.toggle('open');
+}
+
+function toggleFooterEdit(){
+  const wrap = document.getElementById('footer-edit-wrap');
+  if(wrap) wrap.classList.toggle('show');
+}
+
+function updateStepSummaries(){
+  // Images summary
+  const imgCount = (selHero?1:0) + selBody.length;
+  const imgSum = document.getElementById('step-images-sum');
+  if(imgSum) imgSum.textContent = imgCount > 0 ? imgCount + ' selected' : 'Optional';
+
+  // UTM summary
+  const utmBase = (document.getElementById('utm-base')?.value||'').trim();
+  const utmSum = document.getElementById('step-utm-sum');
+  if(utmSum) utmSum.textContent = utmBase ? utmBase.replace(/https?:\/\//,'').slice(0,30) : 'Optional';
+
+  // Footer summary
+  const opts = FOOTERS[market]||[];
+  const foot = opts.find(f=>f.id===selFoot)||opts[0];
+  const footSum = document.getElementById('step-footer-sum');
+  if(footSum) footSum.textContent = foot ? foot.name : 'Default';
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -1281,16 +1336,12 @@ function renderSelImages(){
       bodyRow.innerHTML = '';
     }
   }
+  updateStepSummaries();
 }
-
-
-// ═══════════════════════════════════════════════════════════
-//  FOOTERS
 // ═══════════════════════════════════════════════════════════
 function renderFooters(){
   const opts=FOOTERS[market]||[];
   if(!selFoot&&opts.length) selFoot=opts[0].id;
-  // Set textarea to current footer html if not yet customised
   const current=opts.find(f=>f.id===selFoot)||opts[0];
   const el=document.getElementById('footer-editor');
   if(el && !el.dataset.edited) el.value=current?.[selPlatform]||'';
@@ -1306,11 +1357,22 @@ function renderFooters(){
   if(tagsMc) tagsMc.style.display = selPlatform==='mc' ? '' : 'none';
   if(tagsHs) tagsHs.style.display = selPlatform==='hs' ? '' : 'none';
 
-  document.getElementById('footer-grid').innerHTML=opts.map(f=>`
-    <button type="button" class="footer-opt${selFoot===f.id?' on':''}" onclick="selectFoot('${f.id}')">
-      <div class="footer-opt-name">${f.name}</div>
-      <div class="footer-opt-prev">${f.prev}</div>
-    </button>`).join('');
+  const footerGrid = document.getElementById('footer-grid');
+  if(opts.length <= 1){
+    // Single option — just show name, no grid needed
+    footerGrid.innerHTML = current
+      ? `<div style="font-size:12px;color:var(--txt);padding:6px 0"><strong>${current.name}</strong> <span style="color:var(--sub);font-size:11px">— ${current.prev}</span></div>`
+      : '';
+    footerGrid.style.display = 'block';
+  } else {
+    footerGrid.style.display = '';
+    footerGrid.innerHTML=opts.map(f=>`
+      <button type="button" class="footer-opt${selFoot===f.id?' on':''}" onclick="selectFoot('${f.id}')">
+        <div class="footer-opt-name">${f.name}</div>
+        <div class="footer-opt-prev">${f.prev}</div>
+      </button>`).join('');
+  }
+  updateStepSummaries();
 }
 function setPlatform(p){
   selPlatform = p;
@@ -1677,44 +1739,6 @@ function renderDatesTable(){
   </tr>`).join('');
 }
 
-function buildDatesTableHtml(){
-  if(!datesEnabled || !datesRows.length) return '';
-  const FONT = "Arial,'Helvetica Neue',Helvetica,sans-serif";
-  const e = s => String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-  const heading = datesHeading || '';
-  const validRows = datesRows.filter(r => r.programme || r.dates);
-  if(!validRows.length) return '';
-
-  const headingHtml = heading ? `<h2 style="margin:0 0 14px;font-family:${FONT};font-size:20px;font-weight:800;color:#111;letter-spacing:-.3px;">${e(heading)}</h2>` : '';
-
-  const rowsHtml = validRows.map(r => {
-    const noteHtml = r.note ? `<span style="display:inline-block;margin-left:8px;font-size:11px;font-weight:700;color:#E03E3E;background:#FFF2F2;padding:2px 8px;border-radius:10px;">${e(r.note)}</span>` : '';
-    return `<tr>
-      <td style="padding:10px 12px;border-bottom:1px solid #EEEEEE;font-family:${FONT};font-size:14px;font-weight:700;color:#111;">${e(r.programme)}</td>
-      <td style="padding:10px 12px;border-bottom:1px solid #EEEEEE;font-family:${FONT};font-size:14px;color:#333;">${e(r.dates)}${noteHtml}</td>
-    </tr>`;
-  }).join('');
-
-  const thLabels = {
-    com: ['Programme','Dates'],
-    pl: ['Program','Terminy'],
-    it: ['Programma','Date'],
-  };
-  const [thProg, thDates] = thLabels[market] || thLabels.com;
-
-  return `
-<tr><td style="padding:20px 20px 0;">
-  ${headingHtml}
-  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;border:1px solid #EEEEEE;border-radius:8px;">
-    <tr>
-      <td style="padding:8px 12px;font-family:${FONT};font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#999;background:#F9F9F9;border-bottom:2px solid #EEEEEE;">${e(thProg)}</td>
-      <td style="padding:8px 12px;font-family:${FONT};font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#999;background:#F9F9F9;border-bottom:2px solid #EEEEEE;">${e(thDates)}</td>
-    </tr>
-    ${rowsHtml}
-  </table>
-</td></tr>`;
-}
-
 function renderResults(c,progs){
   const all=MKT[market].groups.flatMap(g=>g.progs);
   const names=[...selected].map(id=>all.find(p=>p.id===id)?.t||id);
@@ -1798,6 +1822,9 @@ function renderResults(c,progs){
     <div class="dates-toggle-hint">${datesEnabled ? 'ON — tabela dat w mailu' : 'OFF — kliknij żeby włączyć'}</div>
   </div>`;
 
+  const dtLabels = {com:['Programme','Dates','Note'],pl:['Program','Terminy','Uwagi'],it:['Programma','Date','Note']};
+  const [dtProg,dtDates,dtNote] = dtLabels[market]||dtLabels.com;
+
   h+=`<div class="dates-editor${datesEnabled?' show':''}" id="dates-editor">
     <div class="rcard" style="border-color:#CCE8F8;background:#F7FBFF">
       <div class="rcard-head"><span class="rcard-tag tag-b">📅 Dates Table</span></div>
@@ -1807,9 +1834,9 @@ function renderResults(c,progs){
       </div>
       <table class="dates-tbl" id="dates-tbl">
         <thead><tr>
-          <th style="width:38%">Programme</th>
-          <th style="width:30%">Dates</th>
-          <th style="width:25%">Note</th>
+          <th style="width:38%">${dtProg}</th>
+          <th style="width:30%">${dtDates}</th>
+          <th style="width:25%">${dtNote}</th>
           <th style="width:7%"></th>
         </tr></thead>
         <tbody id="dates-tbody"></tbody>
@@ -2095,6 +2122,7 @@ function buildUrl(which){
 function utmPrev(){
   const el1=document.getElementById('utm-out1');if(el1)el1.textContent=buildUrl(1)||'← wpisz URL wyżej';
   const el2=document.getElementById('utm-out2');if(el2)el2.textContent=buildUrl(2)||'← wpisz URL wyżej';
+  updateStepSummaries();
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -2471,12 +2499,21 @@ function buildDatesTableHtml(){
   const e = s => String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
   const heading = datesHeading || 'Dates';
 
+  const thLabels = {
+    com: ['Programme','Dates',''],
+    pl: ['Program','Terminy',''],
+    it: ['Programma','Date',''],
+  };
+  const [thProg, thDates, thNote] = thLabels[market] || thLabels.com;
+
   let tblRows = validRows.map(r => `
     <tr>
       <td style="padding:10px 12px;font-family:${FONT};font-size:14px;font-weight:700;color:#111;border-bottom:1px solid #EEEEEE;">${e(r.programme)}</td>
       <td style="padding:10px 12px;font-family:${FONT};font-size:14px;color:#333;border-bottom:1px solid #EEEEEE;white-space:nowrap;">${e(r.dates)}</td>
       <td style="padding:10px 12px;font-family:${FONT};font-size:13px;color:#E03E3E;font-weight:600;border-bottom:1px solid #EEEEEE;">${e(r.note)}</td>
     </tr>`).join('');
+
+  const thStyle = `padding:10px 12px;font-family:${FONT};font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#666;text-align:left;border-bottom:2px solid #E0E0E0;`;
 
   return `
 <tr><td style="padding:20px 20px 0;">
@@ -2485,9 +2522,9 @@ function buildDatesTableHtml(){
     style="border-collapse:collapse;border:1px solid #EEEEEE;border-radius:10px;overflow:hidden;">
     <thead>
       <tr style="background:#F4F4F4;">
-        <th style="padding:10px 12px;font-family:${FONT};font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#666;text-align:left;border-bottom:2px solid #E0E0E0;">Programme</th>
-        <th style="padding:10px 12px;font-family:${FONT};font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#666;text-align:left;border-bottom:2px solid #E0E0E0;">Dates</th>
-        <th style="padding:10px 12px;font-family:${FONT};font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#666;text-align:left;border-bottom:2px solid #E0E0E0;"></th>
+        <th style="${thStyle}">${e(thProg)}</th>
+        <th style="${thStyle}">${e(thDates)}</th>
+        <th style="${thStyle}"></th>
       </tr>
     </thead>
     <tbody>${tblRows}</tbody>
