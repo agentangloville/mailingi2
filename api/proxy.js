@@ -40,6 +40,8 @@ Example:
 ✈️ No experience required
 🎓 Gain internationally recognised experience
 
+DATES TABLE: If the additional instructions mention ANY dates, terms, sessions, or time periods for programmes, you MUST generate a "dates_table" array. Each entry should have "programme" (name), "dates" (date range), and optionally "note" (e.g. "last 3 spots!", "early bird -15%"). If no dates are mentioned, set dates_table to an empty array [].
+
 Return ONLY valid JSON, no markdown, no backticks.
 
 {
@@ -56,7 +58,8 @@ Return ONLY valid JSON, no markdown, no backticks.
   "ps": "short PS with urgency or bonus",
   "ab1": "A/B subject variant A",
   "ab2": "A/B subject variant B",
-  "send_time": "best send day and time with short reason"
+  "send_time": "best send day and time with short reason",
+  "dates_table": [{"programme":"Programme Name","dates":"21 Jun – 28 Jun 2026","note":"last spots!"}]
 }`;
 
     try {
@@ -270,7 +273,7 @@ Return ONLY valid JSON, no markdown, no backticks.
     const mcList = process.env.MAILCHIMP_LIST_ID;
     if (!mcKey || !mcList) return res.status(200).json({ ok: true, draft_url: 'https://mailchimp.com', message: 'Mailchimp not configured' });
 
-    const { campaign, cta_url, cta_url2, images, program_name, footer_html, social_html } = body;
+    const { campaign, cta_url, cta_url2, images, program_name, footer_html, social_html, dates_table_html } = body;
     const dc   = mcKey.split('-')[1] || 'us1';
     const imgs = images || [];
     const ctaUrl2 = cta_url2 || cta_url;
@@ -368,6 +371,8 @@ Return ONLY valid JSON, no markdown, no backticks.
 
     const img4Row = imgs[3] ? img(imgs[3].thumb||imgs[3].url) : '';
 
+    const datesRow = dates_table_html || '';
+
     const socialRow = social_html || '';
 
     const dividerBeforeSocial = `
@@ -377,7 +382,7 @@ Return ONLY valid JSON, no markdown, no backticks.
   </table>
 </td></tr>`;
 
-    const rows = [logoBar,headlineRow,heroImg,introRow,cta1Row,p1Row,img2Row,p2Row,img3Row,p3Row,psRow,cta2Row,img4Row,dividerBeforeSocial,socialRow].filter(Boolean).join('\n');
+    const rows = [logoBar,headlineRow,heroImg,introRow,cta1Row,p1Row,img2Row,p2Row,img3Row,p3Row,datesRow,psRow,cta2Row,img4Row,dividerBeforeSocial,socialRow].filter(Boolean).join('\n');
 
     const fullHtml = `<!DOCTYPE html>
 <html lang="en"><head>
