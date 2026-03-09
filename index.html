@@ -1615,28 +1615,31 @@ function buildSocialRow(){
   const FONT = "Arial,'Helvetica Neue',Helvetica,sans-serif";
   const followLabel = market==='pl' ? 'Obserwuj nas' : market==='it' ? 'Seguici' : 'Follow us';
 
+  const pill = (url, label, bg) => url
+    ? `<a href="${url}" target="_blank" style="display:inline-block;margin:0 4px 6px;padding:8px 16px;background:${bg};color:#FFFFFF;font-family:${FONT};font-size:12px;font-weight:700;text-decoration:none;border-radius:20px;letter-spacing:0.3px;">${label}</a>`
+    : '';
+
   const renderIcons = (links) => {
     let h = '';
-    if(links.instagram) h += `<a href="${links.instagram}" target="_blank" style="display:inline-block;margin:0 8px;"><img src="https://cdn-images.mailchimp.com/icons/social-block-v3/block-v11/color-instagram-96.png" alt="Instagram" width="28" height="28" style="border:0;"></a>`;
-    if(links.youtube)   h += `<a href="${links.youtube}" target="_blank" style="display:inline-block;margin:0 8px;"><img src="https://cdn-images.mailchimp.com/icons/social-block-v3/block-v11/color-youtube-96.png" alt="YouTube" width="28" height="28" style="border:0;"></a>`;
-    if(links.tiktok)    h += `<a href="${links.tiktok}" target="_blank" style="display:inline-block;margin:0 8px;"><img src="https://cdn-images.mailchimp.com/icons/social-block-v3/block-v11/color-tiktok-96.png" alt="TikTok" width="28" height="28" style="border:0;"></a>`;
+    if(links.instagram) h += pill(links.instagram, 'Instagram', '#E1306C');
+    if(links.youtube)   h += pill(links.youtube,   'YouTube',   '#FF0000');
+    if(links.tiktok)    h += pill(links.tiktok,    'TikTok',    '#000000');
     return h;
   };
 
   let rows = '';
   if(linkSets.length === 1){
-    rows = `<div style="font-family:${FONT};font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#BBBBBB;margin-bottom:10px;">${followLabel}</div>
+    rows = `<div style="font-family:${FONT};font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#BBBBBB;margin-bottom:14px;">${followLabel}</div>
     <div>${renderIcons(linkSets[0])}</div>`;
   } else {
-    // Two rows: main + wymiana
-    rows = `<div style="font-family:${FONT};font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#BBBBBB;margin-bottom:8px;">Angloville Polska</div>
-    <div style="margin-bottom:12px;">${renderIcons(linkSets[0])}</div>
-    <div style="font-family:${FONT};font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#BBBBBB;margin-bottom:8px;">Angloville USA</div>
+    rows = `<div style="font-family:${FONT};font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#BBBBBB;margin-bottom:10px;">Angloville Polska</div>
+    <div style="margin-bottom:16px;">${renderIcons(linkSets[0])}</div>
+    <div style="font-family:${FONT};font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#BBBBBB;margin-bottom:10px;">Angloville USA</div>
     <div>${renderIcons(linkSets[1])}</div>`;
   }
 
   return `
-<tr><td style="padding:20px 20px 8px;text-align:center;border-top:1px solid #EEEEEE;">
+<tr><td style="padding:32px 20px 28px;text-align:center;">
   ${rows}
 </td></tr>`;
 }
