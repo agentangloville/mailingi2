@@ -519,6 +519,14 @@ input.ef:focus,textarea.ef:focus{outline:none;border-color:var(--b)}
       <div class="step-hint">Choose domain footer</div>
     </div>
     <div class="step-body">
+      <!-- Platform toggle -->
+      <div style="margin-bottom:12px">
+        <div style="font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--sub);margin-bottom:6px">Platforma wysyłkowa</div>
+        <div style="display:flex;gap:4px" id="platform-pills">
+          <button type="button" class="img-tab on" id="plat-mc-btn" onclick="setPlatform('mc')">📬 Mailchimp</button>
+          <button type="button" class="img-tab" id="plat-hs-btn" onclick="setPlatform('hs')">🟠 HubSpot</button>
+        </div>
+      </div>
       <div class="footer-grid" id="footer-grid"></div>
       <div style="margin-top:12px">
         <div style="font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--sub);margin-bottom:5px;display:flex;justify-content:space-between;align-items:center">
@@ -529,9 +537,10 @@ input.ef:focus,textarea.ef:focus{outline:none;border-color:var(--b)}
           style="width:100%;padding:9px 12px;border:1.5px solid var(--brd);border-radius:8px;font-family:monospace;font-size:11px;color:var(--txt);resize:vertical;line-height:1.6;background:var(--w)"
           oninput="this.dataset.edited='1'"
           placeholder="Footer HTML will appear here after selecting a domain above…"></textarea>
-        <p style="font-size:10px;color:var(--sub);margin-top:4px;line-height:1.5">
-          Edit HTML directly. Mailchimp tags: <code style="background:#f0f0f0;padding:1px 4px;border-radius:3px">*|UNSUB|*</code> &nbsp; <code style="background:#f0f0f0;padding:1px 4px;border-radius:3px">*|UPDATE_PROFILE|*</code>
-        </p>
+        <div id="footer-tags-ref" style="font-size:10px;color:var(--sub);margin-top:4px;line-height:1.5">
+          <span id="tags-mc">Mailchimp tags: <code style="background:#f0f0f0;padding:1px 4px;border-radius:3px">*|UNSUB|*</code> &nbsp; <code style="background:#f0f0f0;padding:1px 4px;border-radius:3px">*|UPDATE_PROFILE|*</code> &nbsp; <code style="background:#f0f0f0;padding:1px 4px;border-radius:3px">*|FNAME|*</code></span>
+          <span id="tags-hs" style="display:none">HubSpot tags: <code style="background:#FFF3E0;padding:1px 4px;border-radius:3px">{{ unsubscribe_link }}</code> &nbsp; <code style="background:#FFF3E0;padding:1px 4px;border-radius:3px">{{ unsubscribe_link_all }}</code></span>
+        </div>
       </div>
     </div>
   </div>
@@ -631,22 +640,26 @@ const IMG_LIB = {
 };
 
 // ═══════════════════════════════════════════════════════════
-//  FOOTERS
+//  FOOTERS — per platform (Mailchimp / HubSpot)
 // ═══════════════════════════════════════════════════════════
 const FOOTERS = {
   com:[
     {id:'com-en',name:'angloville.com (EN)',prev:'hello@angloville.com · Unsubscribe · Privacy Policy',
-     html:`Want to change how you receive these emails?<br>You can <a href="*|UPDATE_PROFILE|*" style="color:#555;text-decoration:underline;">update your preferences</a> or <a href="*|UNSUB|*" style="color:#555;text-decoration:underline;">unsubscribe from this list</a>.<br><br>Your personal data controller is Angloville International Ltd. <a href="https://angloville.com/privacy-policy/" style="color:#555;text-decoration:underline;">Privacy Policy</a>`},
+     mc:`Want to change how you receive these emails?<br>You can <a href="*|UPDATE_PROFILE|*" style="color:#555;text-decoration:underline;">update your preferences</a> or <a href="*|UNSUB|*" style="color:#555;text-decoration:underline;">unsubscribe from this list</a>.<br><br>Your personal data controller is Angloville International Ltd. <a href="https://angloville.com/privacy-policy/" style="color:#555;text-decoration:underline;">Privacy Policy</a>`,
+     hs:`Want to change how you receive these emails?<br>You can <a href="{{ unsubscribe_link_all }}" style="color:#555;text-decoration:underline;">update your preferences</a> or <a href="{{ unsubscribe_link }}" style="color:#555;text-decoration:underline;">unsubscribe from this list</a>.<br><br>Your personal data controller is Angloville International Ltd. <a href="https://angloville.com/privacy-policy/" style="color:#555;text-decoration:underline;">Privacy Policy</a>`},
   ],
   pl:[
     {id:'pl-pl',name:'angloville.pl (PL)',prev:'kontakt@angloville.pl · Wypisz się · Polityka prywatności',
-     html:`Chcesz zmienić sposób otrzymywania emaili?<br>Możesz <a href="*|UPDATE_PROFILE|*" style="color:#555;text-decoration:underline;">zaktualizować preferencje</a> lub <a href="*|UNSUB|*" style="color:#555;text-decoration:underline;">wypisać się z listy</a>.<br><br>Administratorem Twoich danych jest Angloville International Ltd. <a href="https://angloville.pl/polityka-prywatnosci/" style="color:#555;text-decoration:underline;">Polityka prywatności</a>`},
+     mc:`Chcesz zmienić sposób otrzymywania emaili?<br>Możesz <a href="*|UPDATE_PROFILE|*" style="color:#555;text-decoration:underline;">zaktualizować preferencje</a> lub <a href="*|UNSUB|*" style="color:#555;text-decoration:underline;">wypisać się z listy</a>.<br><br>Administratorem Twoich danych jest Angloville International Ltd. <a href="https://angloville.pl/polityka-prywatnosci/" style="color:#555;text-decoration:underline;">Polityka prywatności</a>`,
+     hs:`Chcesz zmienić sposób otrzymywania emaili?<br>Możesz <a href="{{ unsubscribe_link_all }}" style="color:#555;text-decoration:underline;">zaktualizować preferencje</a> lub <a href="{{ unsubscribe_link }}" style="color:#555;text-decoration:underline;">wypisać się z listy</a>.<br><br>Administratorem Twoich danych jest Angloville International Ltd. <a href="https://angloville.pl/polityka-prywatnosci/" style="color:#555;text-decoration:underline;">Polityka prywatności</a>`},
     {id:'pl-biz',name:'angloville.pl – B2B',prev:'Firmy · Wypisz się · Polityka prywatności',
-     html:`To jest wiadomość biznesowa. Możesz <a href="*|UPDATE_PROFILE|*" style="color:#555;text-decoration:underline;">zaktualizować preferencje</a> lub <a href="*|UNSUB|*" style="color:#555;text-decoration:underline;">wypisać się</a>.<br><br>Angloville International Ltd. <a href="https://angloville.pl/polityka-prywatnosci/" style="color:#555;text-decoration:underline;">Polityka prywatności</a>`},
+     mc:`To jest wiadomość biznesowa. Możesz <a href="*|UPDATE_PROFILE|*" style="color:#555;text-decoration:underline;">zaktualizować preferencje</a> lub <a href="*|UNSUB|*" style="color:#555;text-decoration:underline;">wypisać się</a>.<br><br>Angloville International Ltd. <a href="https://angloville.pl/polityka-prywatnosci/" style="color:#555;text-decoration:underline;">Polityka prywatności</a>`,
+     hs:`To jest wiadomość biznesowa. Możesz <a href="{{ unsubscribe_link_all }}" style="color:#555;text-decoration:underline;">zaktualizować preferencje</a> lub <a href="{{ unsubscribe_link }}" style="color:#555;text-decoration:underline;">wypisać się</a>.<br><br>Angloville International Ltd. <a href="https://angloville.pl/polityka-prywatnosci/" style="color:#555;text-decoration:underline;">Polityka prywatności</a>`},
   ],
   it:[
     {id:'it-it',name:'angloville.it (IT)',prev:'info@angloville.it · Cancellati · Privacy Policy',
-     html:`Vuoi modificare come ricevi queste email?<br>Puoi <a href="*|UPDATE_PROFILE|*" style="color:#555;text-decoration:underline;">aggiornare le preferenze</a> o <a href="*|UNSUB|*" style="color:#555;text-decoration:underline;">cancellarti dalla lista</a>.<br><br>Il titolare del trattamento dati è Angloville International Ltd. <a href="https://angloville.it/privacy-policy/" style="color:#555;text-decoration:underline;">Privacy Policy</a>`},
+     mc:`Vuoi modificare come ricevi queste email?<br>Puoi <a href="*|UPDATE_PROFILE|*" style="color:#555;text-decoration:underline;">aggiornare le preferenze</a> o <a href="*|UNSUB|*" style="color:#555;text-decoration:underline;">cancellarti dalla lista</a>.<br><br>Il titolare del trattamento dati è Angloville International Ltd. <a href="https://angloville.it/privacy-policy/" style="color:#555;text-decoration:underline;">Privacy Policy</a>`,
+     hs:`Vuoi modificare come ricevi queste email?<br>Puoi <a href="{{ unsubscribe_link_all }}" style="color:#555;text-decoration:underline;">aggiornare le preferenze</a> o <a href="{{ unsubscribe_link }}" style="color:#555;text-decoration:underline;">cancellarti dalla lista</a>.<br><br>Il titolare del trattamento dati è Angloville International Ltd. <a href="https://angloville.it/privacy-policy/" style="color:#555;text-decoration:underline;">Privacy Policy</a>`},
   ],
 };
 
@@ -793,6 +806,7 @@ let selected = new Set();
 let selHero  = null;   // single hero image {url, thumb, label}
 let selBody  = [];     // max 2 body images
 let selFoot  = null;
+let selPlatform = 'mc'; // 'mc' = Mailchimp, 'hs' = HubSpot
 let libCat   = null;
 let activeSlot = 'hero'; // 'hero' or 'body' — which gallery is active
 
@@ -1028,7 +1042,18 @@ function renderFooters(){
   // Set textarea to current footer html if not yet customised
   const current=opts.find(f=>f.id===selFoot)||opts[0];
   const el=document.getElementById('footer-editor');
-  if(el && !el.dataset.edited) el.value=current?.html||'';
+  if(el && !el.dataset.edited) el.value=current?.[selPlatform]||'';
+
+  // Update platform pill styles
+  document.querySelectorAll('#platform-pills .img-tab').forEach(b=>b.classList.remove('on'));
+  const platBtn = document.getElementById('plat-'+selPlatform+'-btn');
+  if(platBtn) platBtn.classList.add('on');
+
+  // Show correct tags reference
+  const tagsMc = document.getElementById('tags-mc');
+  const tagsHs = document.getElementById('tags-hs');
+  if(tagsMc) tagsMc.style.display = selPlatform==='mc' ? '' : 'none';
+  if(tagsHs) tagsHs.style.display = selPlatform==='hs' ? '' : 'none';
 
   document.getElementById('footer-grid').innerHTML=opts.map(f=>`
     <button type="button" class="footer-opt${selFoot===f.id?' on':''}" onclick="selectFoot('${f.id}')">
@@ -1036,26 +1061,33 @@ function renderFooters(){
       <div class="footer-opt-prev">${f.prev}</div>
     </button>`).join('');
 }
+function setPlatform(p){
+  selPlatform = p;
+  // Reset editor to new platform's template
+  const el=document.getElementById('footer-editor');
+  if(el) delete el.dataset.edited;
+  renderFooters();
+}
 function selectFoot(id){
   selFoot=id;
-  // Update editor with this footer's default html, reset edited flag
+  // Update editor with this footer's default html for current platform, reset edited flag
   const opts=FOOTERS[market]||[];
   const f=opts.find(x=>x.id===id);
   const el=document.getElementById('footer-editor');
-  if(el){ el.value=f?.html||''; delete el.dataset.edited; }
+  if(el){ el.value=f?.[selPlatform]||''; delete el.dataset.edited; }
   renderFooters();
 }
 function resetFooter(){
   const opts=FOOTERS[market]||[];
   const f=opts.find(x=>x.id===selFoot)||opts[0];
   const el=document.getElementById('footer-editor');
-  if(el){ el.value=f?.html||''; delete el.dataset.edited; }
+  if(el){ el.value=f?.[selPlatform]||''; delete el.dataset.edited; }
 }
 function getFooterHtml(){
   const el=document.getElementById('footer-editor');
   if(el&&el.value.trim()) return el.value.trim();
   const opts=FOOTERS[market]||[];
-  return (opts.find(f=>f.id===selFoot)||opts[0])?.html||'';
+  return (opts.find(f=>f.id===selFoot)||opts[0])?.[selPlatform]||'';
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -1173,10 +1205,11 @@ function renderResults(c,progs){
     ['e-intro','Opening paragraph',c.intro,3],
   ]);
   // Greeting per market
+  const fn = fnameTag();
   const greetOpts = {
-    com: [{id:'hi-fname',lbl:'Hi *|FNAME|*,',val:'Hi <strong>*|FNAME|*</strong>,'},{id:'hello',lbl:'Hello!',val:'Hello!'},{id:'custom-g',lbl:'Custom…',val:''}],
-    pl: [{id:'dzien-dobry',lbl:'Dzień dobry *|FNAME|*!',val:'Dzień dobry <strong>*|FNAME|*</strong>!'},{id:'czesc',lbl:'Cześć *|FNAME|*!',val:'Cześć <strong>*|FNAME|*</strong>!'},{id:'hi-fname',lbl:'Hi *|FNAME|*,',val:'Hi <strong>*|FNAME|*</strong>,'},{id:'custom-g',lbl:'Custom…',val:''}],
-    it: [{id:'ciao',lbl:'Ciao *|FNAME|*!',val:'Ciao <strong>*|FNAME|*</strong>!'},{id:'buongiorno',lbl:'Buongiorno *|FNAME|*!',val:'Buongiorno <strong>*|FNAME|*</strong>!'},{id:'hi-fname',lbl:'Hi *|FNAME|*,',val:'Hi <strong>*|FNAME|*</strong>,'},{id:'custom-g',lbl:'Custom…',val:''}],
+    com: [{id:'hi-fname',lbl:`Hi ${fn},`},{id:'hello',lbl:'Hello!'},{id:'custom-g',lbl:'Custom…'}],
+    pl: [{id:'dzien-dobry',lbl:`Dzień dobry ${fn}!`},{id:'czesc',lbl:`Cześć ${fn}!`},{id:'hi-fname',lbl:`Hi ${fn},`},{id:'custom-g',lbl:'Custom…'}],
+    it: [{id:'ciao',lbl:`Ciao ${fn}!`},{id:'buongiorno',lbl:`Buongiorno ${fn}!`},{id:'hi-fname',lbl:`Hi ${fn},`},{id:'custom-g',lbl:'Custom…'}],
   };
   const gOpts = greetOpts[market]||greetOpts.com;
   h+=`<div class="rcard" style="margin-top:-6px;padding:12px 16px;background:#FAFBFD;">
@@ -1432,27 +1465,29 @@ async function sendMC(){
 // ═══════════════════════════════════════════════════════════
 //  GREETING
 // ═══════════════════════════════════════════════════════════
-const GREET_MAP = {
-  'hi-fname':'Hi <strong>*|FNAME|*</strong>,',
-  'hello':'Hello!',
-  'dzien-dobry':'Dzień dobry <strong>*|FNAME|*</strong>!',
-  'czesc':'Cześć <strong>*|FNAME|*</strong>!',
-  'ciao':'Ciao <strong>*|FNAME|*</strong>!',
-  'buongiorno':'Buongiorno <strong>*|FNAME|*</strong>!',
-};
+function fnameTag(){ return selPlatform==='hs' ? '{{ contact.firstname }}' : '*|FNAME|*'; }
+function greetMap(){
+  const fn = fnameTag();
+  return {
+    'hi-fname':`Hi <strong>${fn}</strong>,`,
+    'hello':'Hello!',
+    'dzien-dobry':`Dzień dobry <strong>${fn}</strong>!`,
+    'czesc':`Cześć <strong>${fn}</strong>!`,
+    'ciao':`Ciao <strong>${fn}</strong>!`,
+    'buongiorno':`Buongiorno <strong>${fn}</strong>!`,
+  };
+}
 let activeGreeting = 'none';
 function setGreeting(id){
   activeGreeting = id;
-  // Toggle button styles
   document.querySelectorAll('[id^="greet-"][id$="-btn"]').forEach(b=>b.classList.remove('on'));
   const btn = document.getElementById('greet-'+id+'-btn');
   if(btn) btn.classList.add('on');
-  // Show/hide custom input
   const customEl = document.getElementById('greeting-custom');
   if(customEl) customEl.style.display = id==='custom-g' ? 'block' : 'none';
-  // Set value
   const valEl = document.getElementById('greeting-val');
-  if(valEl) valEl.value = id==='none' ? '' : (id==='custom-g' ? customEl?.value||'' : GREET_MAP[id]||'');
+  const gm = greetMap();
+  if(valEl) valEl.value = id==='none' ? '' : (id==='custom-g' ? customEl?.value||'' : gm[id]||'');
 }
 function updateGreetingVal(){
   const valEl = document.getElementById('greeting-val');
