@@ -1093,6 +1093,12 @@ let datesEnabled = false;
 let datesRows = []; // [{programme:'', dates:'', note:''}]
 let datesHeading = ''; // heading above the table
 
+// "Other options" section state
+let otherOptionsEnabled = false;
+let otherOptionsHeading = '';
+let otherOptionsProductLink = '';
+let otherOptionsSignupLink = '';
+
 // Mailchimp library state
 let mcImages   = [];
 let mcFolders  = [];
@@ -1137,6 +1143,7 @@ const PROMO_DATA = {
 function setMarket(mkt, btn) {
   market = mkt; selected.clear(); selHero = null; selBody = []; selFoot = null; libCat = null; activeCat = null;
   promoSeason = null; promoPhase = null; promoDate = ''; promoDiscount = '';
+  otherOptionsEnabled = false; otherOptionsHeading = ''; otherOptionsProductLink = ''; otherOptionsSignupLink = '';
   document.querySelectorAll('.mkt-pill').forEach(t=>t.classList.remove('active'));
   btn.classList.add('active');
   document.getElementById('extra').placeholder = MKT[mkt].ph;
@@ -2026,6 +2033,39 @@ function renderResults(c,progs){
     </div>
   </div>`;
 
+  // ── OTHER OPTIONS SECTION (optional "Zobacz inne opcje") ──
+  const defaultOtherHeadings = {com:'See other Angloville options', pl:'Zobacz inne opcje Angloville', it:'Scopri altre opzioni Angloville'};
+  if(!otherOptionsHeading) otherOptionsHeading = defaultOtherHeadings[market] || defaultOtherHeadings.com;
+
+  h+=`<div class="dates-toggle other-options-toggle${otherOptionsEnabled?' on':''}" onclick="toggleOtherOptions()">
+    <div class="dates-toggle-switch"></div>
+    <div class="dates-toggle-lbl">🔗 Inne opcje Angloville</div>
+    <div class="dates-toggle-hint other-options-toggle-hint">${otherOptionsEnabled ? 'ON — sekcja "Inne opcje" w mailu' : 'OFF — kliknij żeby włączyć'}</div>
+  </div>`;
+
+  h+=`<div class="dates-editor${otherOptionsEnabled?' show':''}" id="other-options-editor">
+    <div class="rcard" style="border-color:#D4EDDA;background:#F8FFF9">
+      <div class="rcard-head"><span class="rcard-tag tag-g">🔗 Inne opcje Angloville</span></div>
+      <div class="ef-group">
+        <div class="ef-label"><span>Nagłówek sekcji</span></div>
+        <input type="text" class="ef" id="other-options-heading" value="${esc(otherOptionsHeading)}" placeholder="np. Zobacz inne opcje Angloville" oninput="otherOptionsHeading=this.value">
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div class="ef-group" style="margin:0">
+          <div class="ef-label"><span>Link do strony produktowej</span></div>
+          <input type="text" class="ef" id="other-options-product-link" value="${esc(otherOptionsProductLink)}" placeholder="https://angloville.pl/obozy/" oninput="otherOptionsProductLink=this.value">
+        </div>
+        <div class="ef-group" style="margin:0">
+          <div class="ef-label"><span>Link do zapisu</span></div>
+          <input type="text" class="ef" id="other-options-signup-link" value="${esc(otherOptionsSignupLink)}" placeholder="https://angloville.pl/zapisz-sie/" oninput="otherOptionsSignupLink=this.value">
+        </div>
+      </div>
+      <div style="font-size:10px;color:var(--sub);margin-top:8px;line-height:1.5">
+        💡 Sekcja pojawi się przed social media linkami. Możesz wypełnić oba linki lub tylko jeden.
+      </div>
+    </div>
+  </div>`;
+
   h+=rcard('CTA Buttons + PS','tag-g',[
     ['e-cta1','Primary CTA (yellow button)',c.cta,1],
     ['e-cta2','Secondary CTA (blue button)',c.cta2||c.cta,1],
@@ -2394,6 +2434,8 @@ function buildEmailHTML(c, ctaUrl1, ctaUrl2, imgs) {
 
   const img4 = imgs[3] ? imgRow(imgs[3].bodyUrl||imgs[3].thumb||imgs[3].url) : '';
 
+  const otherOptionsRow = buildOtherOptionsHtml();
+
   const socialRow = buildSocialRow();
 
   const dividerBeforeSocial = `
@@ -2403,7 +2445,7 @@ function buildEmailHTML(c, ctaUrl1, ctaUrl2, imgs) {
   </table>
 </td></tr>`;
 
-  const rows = [logoBar,headline,heroImg,intro,cta1,p1,img2,p2,img3,p3,datesTableRow,ps,cta2,img4,dividerBeforeSocial,socialRow].filter(Boolean).join('\n');
+  const rows = [logoBar,headline,heroImg,intro,cta1,p1,img2,p2,img3,p3,datesTableRow,ps,cta2,img4,otherOptionsRow,dividerBeforeSocial,socialRow].filter(Boolean).join('\n');
 
   return `<div style="background:#EBEBEB;padding:0;">
 <style>
@@ -2714,6 +2756,72 @@ function buildDatesTableHtml(){
 }
 
 // ═══════════════════════════════════════════════════════════
+//  OTHER OPTIONS SECTION (optional "Zobacz inne opcje")
+// ═══════════════════════════════════════════════════════════
+function toggleOtherOptions(){
+  otherOptionsEnabled = !otherOptionsEnabled;
+  const tog = document.querySelector('.other-options-toggle');
+  if(tog){
+    tog.classList.toggle('on', otherOptionsEnabled);
+    tog.querySelector('.other-options-toggle-hint').textContent = otherOptionsEnabled 
+      ? 'ON — sekcja "Inne opcje" w mailu' 
+      : 'OFF — kliknij żeby włączyć';
+  }
+  const ed = document.getElementById('other-options-editor');
+  if(ed) ed.classList.toggle('show', otherOptionsEnabled);
+}
+
+function readOtherOptionsFromDOM(){
+  const headEl = document.getElementById('other-options-heading');
+  const prodEl = document.getElementById('other-options-product-link');
+  const signEl = document.getElementById('other-options-signup-link');
+  if(headEl) otherOptionsHeading = headEl.value;
+  if(prodEl) otherOptionsProductLink = prodEl.value;
+  if(signEl) otherOptionsSignupLink = signEl.value;
+}
+
+function buildOtherOptionsHtml(){
+  if(!otherOptionsEnabled) return '';
+  readOtherOptionsFromDOM();
+  if(!otherOptionsProductLink && !otherOptionsSignupLink) return '';
+  
+  const FONT = "Arial,'Helvetica Neue',Helvetica,sans-serif";
+  const e = s => String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  
+  const defaultHeadings = {
+    com: 'See other Angloville options',
+    pl: 'Zobacz inne opcje Angloville',
+    it: 'Scopri altre opzioni Angloville'
+  };
+  const heading = otherOptionsHeading || defaultHeadings[market] || defaultHeadings.com;
+  
+  const defaultProductLabels = {
+    com: 'Browse programmes',
+    pl: 'Zobacz programy',
+    it: 'Scopri i programmi'
+  };
+  const defaultSignupLabels = {
+    com: 'Apply now',
+    pl: 'Zapisz się',
+    it: 'Iscriviti ora'
+  };
+  
+  let buttonsHtml = '';
+  if(otherOptionsProductLink){
+    buttonsHtml += `<a href="${e(otherOptionsProductLink)}" target="_blank" style="display:inline-block;margin:0 6px 8px 0;padding:12px 24px;background:#F4F4F4;color:#333333;font-family:${FONT};font-size:14px;font-weight:600;text-decoration:none;border-radius:25px;">${defaultProductLabels[market] || defaultProductLabels.com}</a>`;
+  }
+  if(otherOptionsSignupLink){
+    buttonsHtml += `<a href="${e(otherOptionsSignupLink)}" target="_blank" style="display:inline-block;margin:0 6px 8px 0;padding:12px 24px;background:#3A9AD9;color:#FFFFFF;font-family:${FONT};font-size:14px;font-weight:600;text-decoration:none;border-radius:25px;">${defaultSignupLabels[market] || defaultSignupLabels.com}</a>`;
+  }
+
+  return `
+<tr><td style="padding:24px 20px;text-align:center;background:#FAFAFA;border-top:1px solid #EEEEEE;border-bottom:1px solid #EEEEEE;">
+  <p style="margin:0 0 14px;font-family:${FONT};font-size:16px;font-weight:700;color:#333333;">${e(heading)}</p>
+  <div>${buttonsHtml}</div>
+</td></tr>`;
+}
+
+// ═══════════════════════════════════════════════════════════
 //  HELPERS
 // ═══════════════════════════════════════════════════════════
 function renderGreetingPreview(){ /* preview updates via getCurrent */ }
@@ -2755,6 +2863,7 @@ function showErr(m){const el=document.getElementById('err-box');el.textContent=m
 function resetAll(){
   selected.clear();selHero=null;selBody=[];selFoot=null;libCat=null;activeCat=null;
   datesEnabled=false;datesRows=[];datesHeading='';
+  otherOptionsEnabled=false;otherOptionsHeading='';otherOptionsProductLink='';otherOptionsSignupLink='';
   emailType='marketing';
   promoSeason=null;promoPhase=null;promoDate='';promoDiscount='';
   document.getElementById('extra').value='';
