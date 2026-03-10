@@ -181,16 +181,33 @@ Return ONLY valid JSON, no markdown, no backticks.
     }
 
     try {
-      const aiRes = await fetch('https://api.anthropic.com/v1/messages', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01' },
-        body: JSON.stringify({ model: 'claude-opus-4-5', max_tokens: 2500, messages: [{ role: 'user', content: prompt }] }),
-      });
-      const aiData = await aiRes.json();
-      if (!aiRes.ok) throw new Error(aiData.error?.message || JSON.stringify(aiData) || 'Anthropic API error');
+      // Retry logic for overloaded API
+      let aiData;
+      let lastError;
+      for (let attempt = 1; attempt <= 3; attempt++) {
+        const aiRes = await fetch('https://api.anthropic.com/v1/messages', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01' },
+          body: JSON.stringify({ model: 'claude-opus-4-5', max_tokens: 2500, messages: [{ role: 'user', content: prompt }] }),
+        });
+        aiData = await aiRes.json();
+        
+        if (aiRes.ok) break;
+        
+        // Check if overloaded - retry after delay
+        if (aiData.error?.type === 'overloaded_error' || aiData.error?.message?.includes('overloaded')) {
+          lastError = 'API przeciążone, próba ' + attempt + '/3...';
+          if (attempt < 3) {
+            await new Promise(r => setTimeout(r, 2000 * attempt)); // Wait 2s, 4s
+            continue;
+          }
+        }
+        throw new Error(aiData.error?.message || JSON.stringify(aiData) || 'Anthropic API error');
+      }
       
-      let raw = (aiData.content?.[0]?.text || '');
-      if (!raw) throw new Error('AI zwróciło pustą odpowiedź. Spróbuj ponownie.');
+      if (!aiData.content?.[0]?.text) throw new Error('AI zwróciło pustą odpowiedź. Spróbuj ponownie.');
+      
+      let raw = aiData.content[0].text;
       
       // Clean up response
       raw = raw.replace(/```json|```/g, '').trim();
@@ -201,27 +218,47 @@ Return ONLY valid JSON, no markdown, no backticks.
       
       // Try to fix common JSON issues before parsing
       let jsonStr = jsonMatch[0];
-      // Fix unescaped newlines inside strings
-      jsonStr = jsonStr.replace(/:\s*"([^"]*)\n([^"]*)"/g, (match, p1, p2) => {
-        return ': "' + p1.replace(/\n/g, '\\n') + '\\n' + p2.replace(/\n/g, '\\n') + '"';
-      });
       
+      // Parse JSON with multiple fallback strategies
       let campaign;
+      
+      // Strategy 1: Direct parse
       try {
         campaign = JSON.parse(jsonStr);
-      } catch (parseErr) {
-        // If still fails, try more aggressive cleanup
+      } catch (e1) {
+        // Strategy 2: Replace newlines inside strings
         try {
-          jsonStr = jsonMatch[0]
-            .replace(/[\x00-\x1F\x7F]/g, (char) => {
-              if (char === '\n') return '\\n';
-              if (char === '\r') return '\\r';
-              if (char === '\t') return '\\t';
-              return '';
-            });
-          campaign = JSON.parse(jsonStr);
-        } catch (parseErr2) {
-          throw new Error('Błąd parsowania JSON: ' + parseErr2.message + '. Fragment: ' + jsonStr.slice(0, 150));
+          let cleaned = jsonStr
+            .replace(/\r\n/g, '\n')
+            .replace(/\r/g, '\n');
+          
+          // Fix newlines inside string values
+          cleaned = cleaned.replace(/"([^"\\]*(\\.[^"\\]*)*)"/g, (match) => {
+            return match.replace(/\n/g, '\\n').replace(/\t/g, '\\t');
+          });
+          
+          campaign = JSON.parse(cleaned);
+        } catch (e2) {
+          // Strategy 3: Remove all control characters
+          try {
+            let aggressive = jsonStr
+              .split('')
+              .map(char => {
+                const code = char.charCodeAt(0);
+                if (code < 32 && code !== 9) return ' ';
+                return char;
+              })
+              .join('')
+              .replace(/\s+/g, ' ')
+              .replace(/"\s*:\s*/g, '": ')
+              .replace(/,\s*"/g, ', "')
+              .replace(/{\s*"/g, '{"')
+              .replace(/"\s*}/g, '"}');
+            
+            campaign = JSON.parse(aggressive);
+          } catch (e3) {
+            throw new Error('Błąd parsowania JSON: ' + e3.message + '. Fragment: ' + jsonStr.slice(0, 150).replace(/\n/g, '\\n'));
+          }
         }
       }
       
