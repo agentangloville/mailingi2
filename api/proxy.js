@@ -264,7 +264,9 @@ Return ONLY valid JSON, no markdown, no backticks.
 
       const files = (data.resources || []).map(item => ({
         id:    item.public_id,
-        url:   item.secure_url.replace('/upload/', '/upload/w_1240,c_fill,g_auto:faces,q_100,f_auto/'),
+        url:   item.secure_url,
+        hero:  item.secure_url.replace('/upload/', '/upload/w_1140,h_751,c_fill,g_auto:faces,q_100,f_auto/'),
+        body:  item.secure_url.replace('/upload/', '/upload/w_1140,h_450,c_fill,g_auto:faces,q_100,f_auto/'),
         thumb: item.secure_url.replace('/upload/', '/upload/w_600,h_400,c_fill,g_auto:faces,q_90,f_auto/'),
         label: item.public_id.split('/').pop(),
         folder: item.public_id.includes('/') ? item.public_id.split('/').slice(0,-1).join('/') : '',
@@ -424,7 +426,7 @@ Return ONLY valid JSON, no markdown, no backticks.
 
     const heroImg = imgs[0] ? `
 <tr><td style="padding:20px 20px 0;line-height:0;">
-  <img src="${imgs[0].thumb||imgs[0].url}" alt="" width="100%"
+  <img src="${imgs[0].heroUrl||imgs[0].thumb||imgs[0].url}" alt="" width="100%"
     style="display:block;width:100%;height:auto;border-radius:10px;object-fit:cover;border:0;">
 </td></tr>` : '';
 
@@ -450,14 +452,14 @@ Return ONLY valid JSON, no markdown, no backticks.
   ${safeHtml(campaign.body_p1)}
 </td></tr>`;
 
-    const img2Row = imgs[1] ? img(imgs[1].thumb||imgs[1].url) : '';
+    const img2Row = imgs[1] ? img(imgs[1].bodyUrl||imgs[1].thumb||imgs[1].url) : '';
 
     const p2Row = `
 <tr><td style="padding:20px 20px 0;font-family:${FONT};font-size:16px;line-height:160%;color:#1a1a1a;">
   ${bullets(campaign.body_p2)}
 </td></tr>`;
 
-    const img3Row = imgs[2] ? img(imgs[2].thumb||imgs[2].url) : '';
+    const img3Row = imgs[2] ? img(imgs[2].bodyUrl||imgs[2].thumb||imgs[2].url) : '';
 
     const p3Row = `
 <tr><td style="padding:16px 20px 0;font-family:${FONT};font-size:16px;line-height:170%;color:#333333;">
@@ -479,7 +481,7 @@ Return ONLY valid JSON, no markdown, no backticks.
   </table>
 </td></tr>`;
 
-    const img4Row = imgs[3] ? img(imgs[3].thumb||imgs[3].url) : '';
+    const img4Row = imgs[3] ? img(imgs[3].bodyUrl||imgs[3].thumb||imgs[3].url) : '';
 
     const datesRow = dates_table_html || '';
 
