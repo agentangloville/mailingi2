@@ -184,14 +184,20 @@ Return ONLY valid JSON, no markdown, no backticks.
       const aiRes = await fetch('https://api.anthropic.com/v1/messages', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01' },
-        body: JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 2500, messages: [{ role: 'user', content: prompt }] }),
+        body: JSON.stringify({ model: 'claude-opus-4-5', max_tokens: 2500, messages: [{ role: 'user', content: prompt }] }),
       });
       const aiData = await aiRes.json();
-      if (!aiRes.ok) throw new Error(aiData.error?.message || 'Anthropic API error');
-      let raw = (aiData.content?.[0]?.text || '').replace(/```json|```/g, '').trim();
+      if (!aiRes.ok) throw new Error(aiData.error?.message || JSON.stringify(aiData) || 'Anthropic API error');
+      
+      let raw = (aiData.content?.[0]?.text || '');
+      if (!raw) throw new Error('AI zwróciło pustą odpowiedź. Spróbuj ponownie.');
+      
+      // Clean up response
+      raw = raw.replace(/```json|```/g, '').trim();
+      
       // Find JSON object in response in case there's extra text
       const jsonMatch = raw.match(/\{[\s\S]*\}/);
-      if (!jsonMatch) throw new Error('AI nie zwróciło poprawnego JSON. Spróbuj ponownie.');
+      if (!jsonMatch) throw new Error('AI nie zwróciło poprawnego JSON. Odpowiedź: ' + raw.slice(0, 200));
       
       // Try to fix common JSON issues before parsing
       let jsonStr = jsonMatch[0];
@@ -205,14 +211,18 @@ Return ONLY valid JSON, no markdown, no backticks.
         campaign = JSON.parse(jsonStr);
       } catch (parseErr) {
         // If still fails, try more aggressive cleanup
-        jsonStr = jsonMatch[0]
-          .replace(/[\x00-\x1F\x7F]/g, (char) => {
-            if (char === '\n') return '\\n';
-            if (char === '\r') return '\\r';
-            if (char === '\t') return '\\t';
-            return '';
-          });
-        campaign = JSON.parse(jsonStr);
+        try {
+          jsonStr = jsonMatch[0]
+            .replace(/[\x00-\x1F\x7F]/g, (char) => {
+              if (char === '\n') return '\\n';
+              if (char === '\r') return '\\r';
+              if (char === '\t') return '\\t';
+              return '';
+            });
+          campaign = JSON.parse(jsonStr);
+        } catch (parseErr2) {
+          throw new Error('Błąd parsowania JSON: ' + parseErr2.message + '. Fragment: ' + jsonStr.slice(0, 150));
+        }
       }
       
       return res.status(200).json({ ok: true, campaign });
