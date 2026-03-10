@@ -1439,6 +1439,8 @@ function renderGallery(slot){
 
   gallery.innerHTML = imgs.map(img=>{
     const lbl = img.label || '';
+    const heroUrl = (img.hero || img.url).replace(/'/g,"\\'");
+    const bodyUrl = (img.body || img.url).replace(/'/g,"\\'");
     let on, badge;
     if(slot === 'hero'){
       on = selHero && selHero.url === img.url;
@@ -1448,7 +1450,7 @@ function renderGallery(slot){
       on = idx >= 0;
       badge = on ? idx+1 : '';
     }
-    return `<div class="gal-item${on?' on':''}" onclick="toggleSlotImg('${slot}','${img.url.replace(/'/g,"\\'")}','${(img.thumb||img.url).replace(/'/g,"\\'")}','${esc(lbl)}')">
+    return `<div class="gal-item${on?' on':''}" onclick="toggleSlotImg('${slot}','${img.url.replace(/'/g,"\\'")}','${(img.thumb||img.url).replace(/'/g,"\\'")}','${esc(lbl)}','${heroUrl}','${bodyUrl}')">
       <img src="${img.thumb||img.url}" alt="${esc(lbl)}" loading="lazy" onerror="this.parentElement.style.background='#DDD';this.style.display='none'">
       <div class="gnum">${badge}</div>
       <div class="glbl">${esc(lbl)}</div>
@@ -1467,13 +1469,13 @@ function renderGallery(slot){
   gallery.appendChild(ref);
 }
 
-function toggleSlotImg(slot, url, thumb, label){
+function toggleSlotImg(slot, url, thumb, label, heroUrl, bodyUrl){
   if(slot === 'hero'){
-    selHero = (selHero && selHero.url === url) ? null : {url, thumb, label};
+    selHero = (selHero && selHero.url === url) ? null : {url, thumb, label, heroUrl: heroUrl||url, bodyUrl: bodyUrl||url};
   } else {
     const idx = selBody.findIndex(s=>s.url===url);
     if(idx >= 0) selBody.splice(idx,1);
-    else if(selBody.length < 2) selBody.push({url, thumb, label});
+    else if(selBody.length < 2) selBody.push({url, thumb, label, heroUrl: heroUrl||url, bodyUrl: bodyUrl||url});
     // max 2 body images — ignore click if already 2 selected
   }
   renderGallery('hero'); renderGallery('body');
@@ -2335,7 +2337,7 @@ function buildEmailHTML(c, ctaUrl1, ctaUrl2, imgs) {
   <h1 style="margin:0;font-family:${FONT};font-size:26px;font-weight:900;line-height:118%;color:#111111;letter-spacing:-0.3px;">${c.headline}</h1>
 </td></tr>`;
 
-  const heroImg = imgs[0] ? imgRow(imgs[0].thumb||imgs[0].url) : '';
+  const heroImg = imgs[0] ? imgRow(imgs[0].heroUrl||imgs[0].thumb||imgs[0].url) : '';
 
   const greetingLine = c.greetingHtml
     ? `<p style="margin:0 0 14px;font-size:17px;color:#111;font-family:${FONT};">${c.greetingHtml}</p>` : '';
@@ -2359,14 +2361,14 @@ function buildEmailHTML(c, ctaUrl1, ctaUrl2, imgs) {
   ${c.body_p1}
 </td></tr>`;
 
-  const img2 = imgs[1] ? imgRow(imgs[1].thumb||imgs[1].url) : '';
+  const img2 = imgs[1] ? imgRow(imgs[1].bodyUrl||imgs[1].thumb||imgs[1].url) : '';
 
   const p2 = `
 <tr><td style="padding:20px 20px 0;font-family:${FONT};font-size:16px;line-height:160%;color:#1a1a1a;">
   ${bullets(c.body_p2)}
 </td></tr>`;
 
-  const img3 = imgs[2] ? imgRow(imgs[2].thumb||imgs[2].url) : '';
+  const img3 = imgs[2] ? imgRow(imgs[2].bodyUrl||imgs[2].thumb||imgs[2].url) : '';
 
   const p3 = `
 <tr><td style="padding:16px 20px 0;font-family:${FONT};font-size:16px;line-height:170%;color:#333333;">
@@ -2390,7 +2392,7 @@ function buildEmailHTML(c, ctaUrl1, ctaUrl2, imgs) {
   </table>
 </td></tr>`;
 
-  const img4 = imgs[3] ? imgRow(imgs[3].thumb||imgs[3].url) : '';
+  const img4 = imgs[3] ? imgRow(imgs[3].bodyUrl||imgs[3].thumb||imgs[3].url) : '';
 
   const socialRow = buildSocialRow();
 
