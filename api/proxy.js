@@ -151,12 +151,12 @@ Never be generic. Never be boring. Every sentence must earn the right to the nex
 
 DATES TABLE: If the additional instructions mention ANY dates, terms, sessions, or time periods, you MUST generate a "dates_table" array. Each entry: "programme" (name), "dates" (date range), optionally "note" (e.g. "ostatnie 3 miejsca!", "early bird -15%"). If no dates mentioned, set to [].
 
-OTHER OPTIONS SECTION: If additional instructions mention "inne opcje", "other options", "see also", "cross-sell", or similar — generate "other_options" array with 2-3 OTHER Angloville programmes (NOT the one being promoted). Each entry needs: "name" (programme name), "tagline" (catchy 5-8 word benefit), "cta_label" (short CTA like "Zobacz"/"Learn more"), "cta_url" (product page URL). Use real Angloville programme names and URLs based on market. If not requested, set to [].
+OTHER OPTIONS SECTION: If additional instructions mention "inne opcje", "other options", "see also", "cross-sell", or similar — generate "other_options" array with 2-3 OTHER Angloville programmes (NOT the one being promoted). Each entry needs: "name" (programme name), "tagline" (catchy 5-8 word benefit), "product_url" (product page URL), "signup_url" (signup/apply page URL). Use real Angloville programme names and URLs based on market. If not requested, set to [].
 
 AVAILABLE PROGRAMMES BY MARKET (use these for other_options):
-- COM (English): Italy Junior (angloville.com/italy-junior/), Poland Junior (angloville.com/poland-junior/), Malta Junior (angloville.com/malta-junior/), Poland Adult (angloville.com/poland-adult/), ESL Mentor (angloville.com/esl-mentor/), Activity Leader (angloville.com/activity-leader/)
-- PL (Polish): Włochy Junior (angloville.pl/wlochy-junior/), Polska Junior (angloville.pl/polska-junior/), Malta Junior (angloville.pl/malta-junior/), Anglia Roehampton (angloville.pl/anglia/), Obozy dla Dorosłych (angloville.pl/dla-doroslych/), Ferie Zimowe (angloville.pl/ferie/)
-- IT (Italian): Italia Junior (angloville.it/italia-junior/), Polonia Junior (angloville.it/polonia-junior/), Malta Junior (angloville.it/malta-junior/), Londra (angloville.it/londra/), Eurotrip (angloville.it/eurotrip/)
+- COM (English): Italy Junior (product: angloville.com/italy-junior/, signup: angloville.com/apply/), Poland Junior (angloville.com/poland-junior/), Malta Junior (angloville.com/malta-junior/), Poland Adult (angloville.com/poland-adult/), ESL Mentor (angloville.com/esl-mentor/)
+- PL (Polish): Włochy Junior (product: angloville.pl/wlochy-junior/, signup: angloville.pl/zapisz-sie/), Polska Junior (angloville.pl/polska-junior/), Malta Junior (angloville.pl/malta-junior/), Anglia Roehampton (angloville.pl/anglia/), Obozy dla Dorosłych (angloville.pl/dla-doroslych/)
+- IT (Italian): Italia Junior (product: angloville.it/italia-junior/, signup: angloville.it/iscriviti/), Polonia Junior (angloville.it/polonia-junior/), Malta Junior (angloville.it/malta-junior/), Londra (angloville.it/londra/)
 
 Return ONLY valid JSON, no markdown, no backticks.
 
@@ -176,7 +176,7 @@ Return ONLY valid JSON, no markdown, no backticks.
   "ab2": "A/B variant B — yet another angle (question vs FOMO vs curiosity)",
   "send_time": "best send day/time with data-backed reason",
   "dates_table": [{"programme":"Programme Name","dates":"21 Jun – 28 Jun 2026","note":"last spots!"}],
-  "other_options": [{"name":"Programme Name","tagline":"Catchy benefit in 5-8 words","cta_label":"Zobacz","cta_url":"https://angloville.pl/program/"}]
+  "other_options": [{"name":"Programme Name","tagline":"Catchy benefit in 5-8 words","product_url":"https://angloville.pl/program/","signup_url":"https://angloville.pl/zapisz-sie/"}]
 }`;
     }
 
