@@ -1121,7 +1121,7 @@ let datesHeading = ''; // heading above the table
 // "Other options" section state
 let otherOptionsEnabled = false;
 let otherOptionsHeading = '';
-let otherOptionsCards = []; // [{name, tagline, cta_label, cta_url, image_url}]
+let otherOptionsCards = []; // [{name, tagline, product_url, signup_url}]
 
 // Mailchimp library state
 let mcImages   = [];
@@ -2064,9 +2064,8 @@ function renderResults(c,progs){
     otherOptionsCards = c.other_options.map(o => ({
       name: o.name || '',
       tagline: o.tagline || '',
-      cta_label: o.cta_label || 'Zobacz',
-      cta_url: o.cta_url || '',
-      image_url: o.image_url || ''
+      product_url: o.product_url || o.cta_url || '',
+      signup_url: o.signup_url || ''
     }));
     const defaultHeadings = {com:'Explore other Angloville programmes', pl:'Zobacz inne programy Angloville', it:'Scopri altri programmi Angloville'};
     otherOptionsHeading = defaultHeadings[market] || defaultHeadings.com;
@@ -2800,31 +2799,12 @@ function toggleOtherOptions(){
   if(ed) ed.classList.toggle('show', otherOptionsEnabled);
 }
 
-function readOtherOptionsFromDOM(){
-  const headEl = document.getElementById('other-options-heading');
-  if(headEl) otherOptionsHeading = headEl.value;
-  
-  // Read cards from DOM
-  const cardEls = document.querySelectorAll('.oo-card-edit');
-  cardEls.forEach((card, i) => {
-    if(otherOptionsCards[i]){
-      otherOptionsCards[i].name = card.querySelector('.oo-name')?.value || '';
-      otherOptionsCards[i].tagline = card.querySelector('.oo-tagline')?.value || '';
-      otherOptionsCards[i].cta_label = card.querySelector('.oo-cta-label')?.value || '';
-      otherOptionsCards[i].cta_url = card.querySelector('.oo-cta-url')?.value || '';
-      otherOptionsCards[i].image_url = card.querySelector('.oo-image-url')?.value || '';
-    }
-  });
-}
-
 function addOtherOptionCard(){
-  const defaultLabels = {com:'Learn more', pl:'Zobacz', it:'Scopri'};
   otherOptionsCards.push({
     name: '',
     tagline: '',
-    cta_label: defaultLabels[market] || 'Zobacz',
-    cta_url: '',
-    image_url: ''
+    product_url: '',
+    signup_url: ''
   });
   renderOtherOptionsCards();
 }
@@ -2838,7 +2818,12 @@ function renderOtherOptionsCards(){
   const container = document.getElementById('oo-cards-container');
   if(!container) return;
   
-  const defaultLabels = {com:'Learn more', pl:'Zobacz', it:'Scopri'};
+  const labels = {
+    com: {product: 'Learn more', signup: 'Apply now'},
+    pl: {product: 'Zobacz program', signup: 'Zapisz się'},
+    it: {product: 'Scopri', signup: 'Iscriviti'}
+  };
+  const lbl = labels[market] || labels.com;
   
   container.innerHTML = otherOptionsCards.map((card, i) => `
     <div class="oo-card-edit" data-index="${i}">
@@ -2847,41 +2832,37 @@ function renderOtherOptionsCards(){
         <button type="button" class="oo-card-rm" onclick="removeOtherOptionCard(${i})" title="Usuń">✕</button>
       </div>
       <div class="oo-card-fields">
-        <input type="text" class="ef oo-name" value="${esc(card.name)}" placeholder="Nazwa programu">
-        <input type="text" class="ef oo-tagline" value="${esc(card.tagline)}" placeholder="Krótki opis (5-10 słów)">
-        <div style="display:grid;grid-template-columns:1fr 2fr;gap:6px">
-          <input type="text" class="ef oo-cta-label" value="${esc(card.cta_label || defaultLabels[market])}" placeholder="Tekst CTA">
-          <input type="text" class="ef oo-cta-url" value="${esc(card.cta_url)}" placeholder="https://angloville.pl/program/">
+        <input type="text" class="ef oo-name" value="${esc(card.name)}" placeholder="Nazwa programu, np. Włochy Junior">
+        <input type="text" class="ef oo-tagline" value="${esc(card.tagline)}" placeholder="Krótki opis, np. Toskania, 6 dni immersji">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
+          <input type="text" class="ef oo-product-url" value="${esc(card.product_url)}" placeholder="${lbl.product} URL">
+          <input type="text" class="ef oo-signup-url" value="${esc(card.signup_url)}" placeholder="${lbl.signup} URL">
         </div>
-        <input type="text" class="ef oo-image-url" value="${esc(card.image_url)}" placeholder="URL zdjęcia (opcjonalne)">
       </div>
     </div>
   `).join('');
 }
 
-// Default images for programmes (fallback)
-const PROGRAMME_IMAGES = {
-  'italy': 'https://mcusercontent.com/817823f284cb8a245fdb9d298/images/918028c9-0a72-ca9c-91ae-8d6983e04895.png',
-  'poland': 'https://mcusercontent.com/817823f284cb8a245fdb9d298/images/5ecb9966-8c30-0e4f-d110-6808717a1137.png',
-  'malta': 'https://mcusercontent.com/817823f284cb8a245fdb9d298/images/4bfb57cd-eb65-fa16-b7bf-4deac4605c54.png',
-  'uk': 'https://mcusercontent.com/817823f284cb8a245fdb9d298/images/dac100c2-77a0-32c7-f9cb-f93a16385edd.png',
-  'default': 'https://mcusercontent.com/817823f284cb8a245fdb9d298/images/0984e528-3b71-9502-d766-22c91f7c5ba8.png'
-};
-
-function getDefaultImage(name){
-  const n = (name||'').toLowerCase();
-  if(n.includes('ital') || n.includes('włoch')) return PROGRAMME_IMAGES.italy;
-  if(n.includes('pola') || n.includes('polsk')) return PROGRAMME_IMAGES.poland;
-  if(n.includes('malt')) return PROGRAMME_IMAGES.malta;
-  if(n.includes('uk') || n.includes('angli') || n.includes('lond') || n.includes('roeh')) return PROGRAMME_IMAGES.uk;
-  return PROGRAMME_IMAGES.default;
+function readOtherOptionsFromDOM(){
+  const headEl = document.getElementById('other-options-heading');
+  if(headEl) otherOptionsHeading = headEl.value;
+  
+  const cardEls = document.querySelectorAll('.oo-card-edit');
+  cardEls.forEach((card, i) => {
+    if(otherOptionsCards[i]){
+      otherOptionsCards[i].name = card.querySelector('.oo-name')?.value || '';
+      otherOptionsCards[i].tagline = card.querySelector('.oo-tagline')?.value || '';
+      otherOptionsCards[i].product_url = card.querySelector('.oo-product-url')?.value || '';
+      otherOptionsCards[i].signup_url = card.querySelector('.oo-signup-url')?.value || '';
+    }
+  });
 }
 
 function buildOtherOptionsHtml(){
   if(!otherOptionsEnabled) return '';
   readOtherOptionsFromDOM();
   
-  const validCards = otherOptionsCards.filter(c => c.name && c.cta_url);
+  const validCards = otherOptionsCards.filter(c => c.name && (c.product_url || c.signup_url));
   if(!validCards.length) return '';
   
   const FONT = "Arial,'Helvetica Neue',Helvetica,sans-serif";
@@ -2894,33 +2875,40 @@ function buildOtherOptionsHtml(){
   };
   const heading = otherOptionsHeading || defaultHeadings[market] || defaultHeadings.com;
   
-  // Build card HTML - 2 columns on desktop, stacked on mobile
-  const cardWidth = validCards.length === 1 ? '100%' : '48%';
+  const labels = {
+    com: {product: 'Learn more', signup: 'Apply now'},
+    pl: {product: 'Zobacz', signup: 'Zapisz się'},
+    it: {product: 'Scopri', signup: 'Iscriviti'}
+  };
+  const lbl = labels[market] || labels.com;
   
-  const cardsHtml = validCards.map(card => {
-    const imgUrl = card.image_url || getDefaultImage(card.name);
+  // Simple table layout - works everywhere
+  const rowsHtml = validCards.map(card => {
+    let links = '';
+    if(card.product_url){
+      links += `<a href="${e(card.product_url)}" style="color:#3A9AD9;text-decoration:underline;font-weight:600;">${lbl.product}</a>`;
+    }
+    if(card.product_url && card.signup_url) links += ' &nbsp;|&nbsp; ';
+    if(card.signup_url){
+      links += `<a href="${e(card.signup_url)}" style="color:#3A9AD9;text-decoration:underline;font-weight:600;">${lbl.signup}</a>`;
+    }
+    
     return `
-    <div style="display:inline-block;width:${cardWidth};max-width:280px;vertical-align:top;margin:0 4px 12px;background:#FFFFFF;border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.08);">
-      ${imgUrl ? `<img src="${e(imgUrl)}" alt="${e(card.name)}" width="100%" style="display:block;width:100%;height:140px;object-fit:cover;">` : ''}
-      <div style="padding:14px 16px 18px;">
-        <p style="margin:0 0 6px;font-family:${FONT};font-size:15px;font-weight:700;color:#111111;line-height:1.3;">${e(card.name)}</p>
-        ${card.tagline ? `<p style="margin:0 0 12px;font-family:${FONT};font-size:13px;color:#666666;line-height:1.4;">${e(card.tagline)}</p>` : ''}
-        <a href="${e(card.cta_url)}" target="_blank" style="display:inline-block;padding:10px 20px;background:#FCD23A;color:#111111;font-family:${FONT};font-size:13px;font-weight:700;text-decoration:none;border-radius:20px;">${e(card.cta_label || 'Zobacz')}</a>
-      </div>
-    </div>`;
+    <tr>
+      <td style="padding:12px 16px;border-bottom:1px solid #EEEEEE;">
+        <p style="margin:0 0 4px;font-family:${FONT};font-size:15px;font-weight:700;color:#111111;">${e(card.name)}</p>
+        ${card.tagline ? `<p style="margin:0 0 8px;font-family:${FONT};font-size:13px;color:#666666;">${e(card.tagline)}</p>` : ''}
+        <p style="margin:0;font-family:${FONT};font-size:13px;">${links}</p>
+      </td>
+    </tr>`;
   }).join('');
 
   return `
-<tr><td style="padding:28px 16px;background:#F7F7F7;">
-  <p style="margin:0 0 18px;font-family:${FONT};font-size:18px;font-weight:800;color:#111111;text-align:center;">${e(heading)}</p>
-  <div style="text-align:center;font-size:0;">
-    <!--[if mso]>
-    <table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr>
-    ${validCards.map((c,i) => `<td width="${Math.floor(100/validCards.length)}%" valign="top">`).join('</td>')}
-    </tr></table>
-    <![endif]-->
-    ${cardsHtml}
-  </div>
+<tr><td style="padding:24px 20px;background:#F9F9F9;">
+  <p style="margin:0 0 16px;font-family:${FONT};font-size:17px;font-weight:800;color:#111111;text-align:center;">${e(heading)}</p>
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#FFFFFF;border-radius:8px;border:1px solid #EEEEEE;">
+    ${rowsHtml}
+  </table>
 </td></tr>`;
 }
 
