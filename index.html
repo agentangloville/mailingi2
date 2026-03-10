@@ -526,6 +526,31 @@ input.ef:focus,textarea.ef:focus{outline:none;border-color:var(--b)}
   margin-bottom:8px;
 }
 
+/* OTHER OPTIONS CARDS EDITOR */
+.oo-card-edit{
+  background:#fff;border:1px solid var(--brd);border-radius:8px;
+  padding:10px 12px;margin-bottom:8px;position:relative;
+}
+.oo-card-header{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:8px;
+}
+.oo-card-num{
+  width:20px;height:20px;border-radius:4px;
+  background:var(--dk);color:var(--y);
+  font-size:10px;font-weight:800;
+  display:flex;align-items:center;justify-content:center;
+}
+.oo-card-rm{
+  background:none;border:none;color:#CC0000;font-size:12px;
+  cursor:pointer;padding:2px 6px;border-radius:4px;
+}
+.oo-card-rm:hover{background:#FFF2F2}
+.oo-card-fields{display:flex;flex-direction:column;gap:6px}
+.oo-card-fields .ef{
+  padding:6px 10px;font-size:12px;
+}
+
 /* MODAL */
 .modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:999;overflow-y:auto;padding:16px}
 
@@ -1096,8 +1121,7 @@ let datesHeading = ''; // heading above the table
 // "Other options" section state
 let otherOptionsEnabled = false;
 let otherOptionsHeading = '';
-let otherOptionsProductLink = '';
-let otherOptionsSignupLink = '';
+let otherOptionsCards = []; // [{name, tagline, cta_label, cta_url, image_url}]
 
 // Mailchimp library state
 let mcImages   = [];
@@ -1143,7 +1167,7 @@ const PROMO_DATA = {
 function setMarket(mkt, btn) {
   market = mkt; selected.clear(); selHero = null; selBody = []; selFoot = null; libCat = null; activeCat = null;
   promoSeason = null; promoPhase = null; promoDate = ''; promoDiscount = '';
-  otherOptionsEnabled = false; otherOptionsHeading = ''; otherOptionsProductLink = ''; otherOptionsSignupLink = '';
+  otherOptionsEnabled = false; otherOptionsHeading = ''; otherOptionsCards = [];
   document.querySelectorAll('.mkt-pill').forEach(t=>t.classList.remove('active'));
   btn.classList.add('active');
   document.getElementById('extra').placeholder = MKT[mkt].ph;
@@ -2033,35 +2057,39 @@ function renderResults(c,progs){
     </div>
   </div>`;
 
-  // ── OTHER OPTIONS SECTION (optional "Zobacz inne opcje") ──
-  const defaultOtherHeadings = {com:'See other Angloville options', pl:'Zobacz inne opcje Angloville', it:'Scopri altre opzioni Angloville'};
-  if(!otherOptionsHeading) otherOptionsHeading = defaultOtherHeadings[market] || defaultOtherHeadings.com;
+  // ── OTHER OPTIONS SECTION (kafelki z innymi programami) ──
+  const hasOtherOptions = c.other_options && c.other_options.length > 0;
+  if(hasOtherOptions && !otherOptionsCards.length){
+    otherOptionsEnabled = true;
+    otherOptionsCards = c.other_options.map(o => ({
+      name: o.name || '',
+      tagline: o.tagline || '',
+      cta_label: o.cta_label || 'Zobacz',
+      cta_url: o.cta_url || '',
+      image_url: o.image_url || ''
+    }));
+    const defaultHeadings = {com:'Explore other Angloville programmes', pl:'Zobacz inne programy Angloville', it:'Scopri altri programmi Angloville'};
+    otherOptionsHeading = defaultHeadings[market] || defaultHeadings.com;
+  }
 
   h+=`<div class="dates-toggle other-options-toggle${otherOptionsEnabled?' on':''}" onclick="toggleOtherOptions()">
     <div class="dates-toggle-switch"></div>
-    <div class="dates-toggle-lbl">🔗 Inne opcje Angloville</div>
-    <div class="dates-toggle-hint other-options-toggle-hint">${otherOptionsEnabled ? 'ON — sekcja "Inne opcje" w mailu' : 'OFF — kliknij żeby włączyć'}</div>
+    <div class="dates-toggle-lbl">🎯 Inne programy Angloville</div>
+    <div class="dates-toggle-hint other-options-toggle-hint">${otherOptionsEnabled ? 'ON — kafelki w mailu' : 'OFF — kliknij żeby włączyć'}</div>
   </div>`;
 
   h+=`<div class="dates-editor${otherOptionsEnabled?' show':''}" id="other-options-editor">
     <div class="rcard" style="border-color:#D4EDDA;background:#F8FFF9">
-      <div class="rcard-head"><span class="rcard-tag tag-g">🔗 Inne opcje Angloville</span></div>
+      <div class="rcard-head"><span class="rcard-tag tag-g">🎯 Kafelki z innymi programami</span></div>
       <div class="ef-group">
         <div class="ef-label"><span>Nagłówek sekcji</span></div>
-        <input type="text" class="ef" id="other-options-heading" value="${esc(otherOptionsHeading)}" placeholder="np. Zobacz inne opcje Angloville" oninput="otherOptionsHeading=this.value">
+        <input type="text" class="ef" id="other-options-heading" value="${esc(otherOptionsHeading)}" placeholder="np. Zobacz inne programy Angloville">
       </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-        <div class="ef-group" style="margin:0">
-          <div class="ef-label"><span>Link do strony produktowej</span></div>
-          <input type="text" class="ef" id="other-options-product-link" value="${esc(otherOptionsProductLink)}" placeholder="https://angloville.pl/obozy/" oninput="otherOptionsProductLink=this.value">
-        </div>
-        <div class="ef-group" style="margin:0">
-          <div class="ef-label"><span>Link do zapisu</span></div>
-          <input type="text" class="ef" id="other-options-signup-link" value="${esc(otherOptionsSignupLink)}" placeholder="https://angloville.pl/zapisz-sie/" oninput="otherOptionsSignupLink=this.value">
-        </div>
-      </div>
-      <div style="font-size:10px;color:var(--sub);margin-top:8px;line-height:1.5">
-        💡 Sekcja pojawi się przed social media linkami. Możesz wypełnić oba linki lub tylko jeden.
+      <div style="font-size:10px;font-weight:600;color:var(--sub);margin:12px 0 8px;letter-spacing:0.5px">KAFELKI PROGRAMÓW</div>
+      <div id="oo-cards-container"></div>
+      <button type="button" class="dates-add" onclick="addOtherOptionCard()" style="margin-top:8px">+ Dodaj kafelek</button>
+      <div style="font-size:10px;color:var(--sub);margin-top:10px;line-height:1.5;padding:8px;background:#fff;border-radius:6px">
+        💡 <strong>Tip:</strong> W "Additional instructions" wpisz "dodaj inne opcje" lub "cross-sell" — AI automatycznie zaproponuje powiązane programy.
       </div>
     </div>
   </div>`;
@@ -2104,6 +2132,7 @@ function renderResults(c,progs){
   const el=document.getElementById('results');
   el.innerHTML=h; el.style.display='block';
   renderDatesTable();
+  renderOtherOptionsCards();
   el.scrollIntoView({behavior:'smooth',block:'start'});
 }
 
@@ -2764,7 +2793,7 @@ function toggleOtherOptions(){
   if(tog){
     tog.classList.toggle('on', otherOptionsEnabled);
     tog.querySelector('.other-options-toggle-hint').textContent = otherOptionsEnabled 
-      ? 'ON — sekcja "Inne opcje" w mailu' 
+      ? 'ON — kafelki w mailu' 
       : 'OFF — kliknij żeby włączyć';
   }
   const ed = document.getElementById('other-options-editor');
@@ -2773,51 +2802,125 @@ function toggleOtherOptions(){
 
 function readOtherOptionsFromDOM(){
   const headEl = document.getElementById('other-options-heading');
-  const prodEl = document.getElementById('other-options-product-link');
-  const signEl = document.getElementById('other-options-signup-link');
   if(headEl) otherOptionsHeading = headEl.value;
-  if(prodEl) otherOptionsProductLink = prodEl.value;
-  if(signEl) otherOptionsSignupLink = signEl.value;
+  
+  // Read cards from DOM
+  const cardEls = document.querySelectorAll('.oo-card-edit');
+  cardEls.forEach((card, i) => {
+    if(otherOptionsCards[i]){
+      otherOptionsCards[i].name = card.querySelector('.oo-name')?.value || '';
+      otherOptionsCards[i].tagline = card.querySelector('.oo-tagline')?.value || '';
+      otherOptionsCards[i].cta_label = card.querySelector('.oo-cta-label')?.value || '';
+      otherOptionsCards[i].cta_url = card.querySelector('.oo-cta-url')?.value || '';
+      otherOptionsCards[i].image_url = card.querySelector('.oo-image-url')?.value || '';
+    }
+  });
+}
+
+function addOtherOptionCard(){
+  const defaultLabels = {com:'Learn more', pl:'Zobacz', it:'Scopri'};
+  otherOptionsCards.push({
+    name: '',
+    tagline: '',
+    cta_label: defaultLabels[market] || 'Zobacz',
+    cta_url: '',
+    image_url: ''
+  });
+  renderOtherOptionsCards();
+}
+
+function removeOtherOptionCard(i){
+  otherOptionsCards.splice(i, 1);
+  renderOtherOptionsCards();
+}
+
+function renderOtherOptionsCards(){
+  const container = document.getElementById('oo-cards-container');
+  if(!container) return;
+  
+  const defaultLabels = {com:'Learn more', pl:'Zobacz', it:'Scopri'};
+  
+  container.innerHTML = otherOptionsCards.map((card, i) => `
+    <div class="oo-card-edit" data-index="${i}">
+      <div class="oo-card-header">
+        <span class="oo-card-num">${i+1}</span>
+        <button type="button" class="oo-card-rm" onclick="removeOtherOptionCard(${i})" title="Usuń">✕</button>
+      </div>
+      <div class="oo-card-fields">
+        <input type="text" class="ef oo-name" value="${esc(card.name)}" placeholder="Nazwa programu">
+        <input type="text" class="ef oo-tagline" value="${esc(card.tagline)}" placeholder="Krótki opis (5-10 słów)">
+        <div style="display:grid;grid-template-columns:1fr 2fr;gap:6px">
+          <input type="text" class="ef oo-cta-label" value="${esc(card.cta_label || defaultLabels[market])}" placeholder="Tekst CTA">
+          <input type="text" class="ef oo-cta-url" value="${esc(card.cta_url)}" placeholder="https://angloville.pl/program/">
+        </div>
+        <input type="text" class="ef oo-image-url" value="${esc(card.image_url)}" placeholder="URL zdjęcia (opcjonalne)">
+      </div>
+    </div>
+  `).join('');
+}
+
+// Default images for programmes (fallback)
+const PROGRAMME_IMAGES = {
+  'italy': 'https://mcusercontent.com/817823f284cb8a245fdb9d298/images/918028c9-0a72-ca9c-91ae-8d6983e04895.png',
+  'poland': 'https://mcusercontent.com/817823f284cb8a245fdb9d298/images/5ecb9966-8c30-0e4f-d110-6808717a1137.png',
+  'malta': 'https://mcusercontent.com/817823f284cb8a245fdb9d298/images/4bfb57cd-eb65-fa16-b7bf-4deac4605c54.png',
+  'uk': 'https://mcusercontent.com/817823f284cb8a245fdb9d298/images/dac100c2-77a0-32c7-f9cb-f93a16385edd.png',
+  'default': 'https://mcusercontent.com/817823f284cb8a245fdb9d298/images/0984e528-3b71-9502-d766-22c91f7c5ba8.png'
+};
+
+function getDefaultImage(name){
+  const n = (name||'').toLowerCase();
+  if(n.includes('ital') || n.includes('włoch')) return PROGRAMME_IMAGES.italy;
+  if(n.includes('pola') || n.includes('polsk')) return PROGRAMME_IMAGES.poland;
+  if(n.includes('malt')) return PROGRAMME_IMAGES.malta;
+  if(n.includes('uk') || n.includes('angli') || n.includes('lond') || n.includes('roeh')) return PROGRAMME_IMAGES.uk;
+  return PROGRAMME_IMAGES.default;
 }
 
 function buildOtherOptionsHtml(){
   if(!otherOptionsEnabled) return '';
   readOtherOptionsFromDOM();
-  if(!otherOptionsProductLink && !otherOptionsSignupLink) return '';
+  
+  const validCards = otherOptionsCards.filter(c => c.name && c.cta_url);
+  if(!validCards.length) return '';
   
   const FONT = "Arial,'Helvetica Neue',Helvetica,sans-serif";
   const e = s => String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
   
   const defaultHeadings = {
-    com: 'See other Angloville options',
-    pl: 'Zobacz inne opcje Angloville',
-    it: 'Scopri altre opzioni Angloville'
+    com: 'Explore other Angloville programmes',
+    pl: 'Zobacz inne programy Angloville',
+    it: 'Scopri altri programmi Angloville'
   };
   const heading = otherOptionsHeading || defaultHeadings[market] || defaultHeadings.com;
   
-  const defaultProductLabels = {
-    com: 'Browse programmes',
-    pl: 'Zobacz programy',
-    it: 'Scopri i programmi'
-  };
-  const defaultSignupLabels = {
-    com: 'Apply now',
-    pl: 'Zapisz się',
-    it: 'Iscriviti ora'
-  };
+  // Build card HTML - 2 columns on desktop, stacked on mobile
+  const cardWidth = validCards.length === 1 ? '100%' : '48%';
   
-  let buttonsHtml = '';
-  if(otherOptionsProductLink){
-    buttonsHtml += `<a href="${e(otherOptionsProductLink)}" target="_blank" style="display:inline-block;margin:0 6px 8px 0;padding:12px 24px;background:#F4F4F4;color:#333333;font-family:${FONT};font-size:14px;font-weight:600;text-decoration:none;border-radius:25px;">${defaultProductLabels[market] || defaultProductLabels.com}</a>`;
-  }
-  if(otherOptionsSignupLink){
-    buttonsHtml += `<a href="${e(otherOptionsSignupLink)}" target="_blank" style="display:inline-block;margin:0 6px 8px 0;padding:12px 24px;background:#3A9AD9;color:#FFFFFF;font-family:${FONT};font-size:14px;font-weight:600;text-decoration:none;border-radius:25px;">${defaultSignupLabels[market] || defaultSignupLabels.com}</a>`;
-  }
+  const cardsHtml = validCards.map(card => {
+    const imgUrl = card.image_url || getDefaultImage(card.name);
+    return `
+    <div style="display:inline-block;width:${cardWidth};max-width:280px;vertical-align:top;margin:0 4px 12px;background:#FFFFFF;border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.08);">
+      ${imgUrl ? `<img src="${e(imgUrl)}" alt="${e(card.name)}" width="100%" style="display:block;width:100%;height:140px;object-fit:cover;">` : ''}
+      <div style="padding:14px 16px 18px;">
+        <p style="margin:0 0 6px;font-family:${FONT};font-size:15px;font-weight:700;color:#111111;line-height:1.3;">${e(card.name)}</p>
+        ${card.tagline ? `<p style="margin:0 0 12px;font-family:${FONT};font-size:13px;color:#666666;line-height:1.4;">${e(card.tagline)}</p>` : ''}
+        <a href="${e(card.cta_url)}" target="_blank" style="display:inline-block;padding:10px 20px;background:#FCD23A;color:#111111;font-family:${FONT};font-size:13px;font-weight:700;text-decoration:none;border-radius:20px;">${e(card.cta_label || 'Zobacz')}</a>
+      </div>
+    </div>`;
+  }).join('');
 
   return `
-<tr><td style="padding:24px 20px;text-align:center;background:#FAFAFA;border-top:1px solid #EEEEEE;border-bottom:1px solid #EEEEEE;">
-  <p style="margin:0 0 14px;font-family:${FONT};font-size:16px;font-weight:700;color:#333333;">${e(heading)}</p>
-  <div>${buttonsHtml}</div>
+<tr><td style="padding:28px 16px;background:#F7F7F7;">
+  <p style="margin:0 0 18px;font-family:${FONT};font-size:18px;font-weight:800;color:#111111;text-align:center;">${e(heading)}</p>
+  <div style="text-align:center;font-size:0;">
+    <!--[if mso]>
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr>
+    ${validCards.map((c,i) => `<td width="${Math.floor(100/validCards.length)}%" valign="top">`).join('</td>')}
+    </tr></table>
+    <![endif]-->
+    ${cardsHtml}
+  </div>
 </td></tr>`;
 }
 
@@ -2863,7 +2966,7 @@ function showErr(m){const el=document.getElementById('err-box');el.textContent=m
 function resetAll(){
   selected.clear();selHero=null;selBody=[];selFoot=null;libCat=null;activeCat=null;
   datesEnabled=false;datesRows=[];datesHeading='';
-  otherOptionsEnabled=false;otherOptionsHeading='';otherOptionsProductLink='';otherOptionsSignupLink='';
+  otherOptionsEnabled=false;otherOptionsHeading='';otherOptionsCards=[];
   emailType='marketing';
   promoSeason=null;promoPhase=null;promoDate='';promoDiscount='';
   document.getElementById('extra').value='';
