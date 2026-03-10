@@ -176,7 +176,7 @@ Return ONLY valid JSON, no markdown, no backticks.
       const aiRes = await fetch('https://api.anthropic.com/v1/messages', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01' },
-        body: JSON.stringify({ model: 'claude-opus-4-5', max_tokens: 2500, messages: [{ role: 'user', content: prompt }] }),
+        body: JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 2500, messages: [{ role: 'user', content: prompt }] }),
       });
       const aiData = await aiRes.json();
       if (!aiRes.ok) throw new Error(aiData.error?.message || 'Anthropic API error');
@@ -184,7 +184,29 @@ Return ONLY valid JSON, no markdown, no backticks.
       // Find JSON object in response in case there's extra text
       const jsonMatch = raw.match(/\{[\s\S]*\}/);
       if (!jsonMatch) throw new Error('AI nie zwróciło poprawnego JSON. Spróbuj ponownie.');
-      const campaign = JSON.parse(jsonMatch[0]);
+      
+      // Try to fix common JSON issues before parsing
+      let jsonStr = jsonMatch[0];
+      // Fix unescaped newlines inside strings
+      jsonStr = jsonStr.replace(/:\s*"([^"]*)\n([^"]*)"/g, (match, p1, p2) => {
+        return ': "' + p1.replace(/\n/g, '\\n') + '\\n' + p2.replace(/\n/g, '\\n') + '"';
+      });
+      
+      let campaign;
+      try {
+        campaign = JSON.parse(jsonStr);
+      } catch (parseErr) {
+        // If still fails, try more aggressive cleanup
+        jsonStr = jsonMatch[0]
+          .replace(/[\x00-\x1F\x7F]/g, (char) => {
+            if (char === '\n') return '\\n';
+            if (char === '\r') return '\\r';
+            if (char === '\t') return '\\t';
+            return '';
+          });
+        campaign = JSON.parse(jsonStr);
+      }
+      
       return res.status(200).json({ ok: true, campaign });
     } catch (e) {
       return res.status(500).json({ ok: false, error: e.message });
