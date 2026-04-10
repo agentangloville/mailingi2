@@ -731,12 +731,34 @@ input.ef:focus,textarea.ef:focus{outline:none;border-color:var(--b)}
       <div class="utm-wrap">
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
           <div class="ef-group" style="margin:0">
-            <div class="ef-label" style="margin-bottom:4px"><span>🟡 Primary CTA link</span></div>
-            <input type="text" class="ef" id="utm-base" placeholder="https://angloville.com/apply/" oninput="utmPrev()">
+            <div class="ef-label" style="margin-bottom:4px;display:flex;align-items:center;justify-content:space-between">
+              <span>🟡 Primary CTA link</span>
+              <label style="display:flex;align-items:center;gap:5px;font-size:10px;font-weight:500;color:var(--sub);cursor:pointer">
+                <input type="checkbox" id="mailto-toggle-1" onchange="toggleMailto(1)" style="accent-color:var(--y);cursor:pointer"> <span id="mailto-lbl-1">✉️ Reply to email</span>
+              </label>
+            </div>
+            <div id="url-mode-1">
+              <input type="text" class="ef" id="utm-base" placeholder="https://angloville.com/apply/" oninput="utmPrev()">
+            </div>
+            <div id="mailto-mode-1" style="display:none">
+              <input type="email" class="ef" id="mailto-email-1" placeholder="adres@angloville.com" oninput="utmPrev()" style="margin-bottom:5px">
+              <input type="text" class="ef" id="mailto-subject-1" placeholder="Subject line, np. Rezerwacja miejsca" oninput="utmPrev()">
+            </div>
           </div>
           <div class="ef-group" style="margin:0">
-            <div class="ef-label" style="margin-bottom:4px"><span>🔵 Secondary CTA link</span><span style="font-size:9px;color:var(--sub);font-weight:400">puste = tak samo jak primary</span></div>
-            <input type="text" class="ef" id="utm-base2" placeholder="(same as primary)" oninput="utmPrev()">
+            <div class="ef-label" style="margin-bottom:4px;display:flex;align-items:center;justify-content:space-between">
+              <span>🔵 Secondary CTA link</span>
+              <label style="display:flex;align-items:center;gap:5px;font-size:10px;font-weight:500;color:var(--sub);cursor:pointer">
+                <input type="checkbox" id="mailto-toggle-2" onchange="toggleMailto(2)" style="accent-color:var(--y);cursor:pointer"> <span id="mailto-lbl-2">✉️ Reply</span>
+              </label>
+            </div>
+            <div id="url-mode-2">
+              <input type="text" class="ef" id="utm-base2" placeholder="(same as primary)" oninput="utmPrev()">
+            </div>
+            <div id="mailto-mode-2" style="display:none">
+              <input type="email" class="ef" id="mailto-email-2" placeholder="adres@angloville.com" oninput="utmPrev()" style="margin-bottom:5px">
+              <input type="text" class="ef" id="mailto-subject-2" placeholder="Subject line" oninput="utmPrev()">
+            </div>
           </div>
         </div>
         <div style="height:1px;background:var(--brd);margin-bottom:12px"></div>
@@ -1181,7 +1203,7 @@ function setMarket(mkt, btn) {
 function renderAll(){
   renderProgs(); updateSelBar();
   initLibCat(); renderLibTabs(); renderGallery('hero'); renderGallery('body');
-  renderSelImages(); renderFooters(); renderPromo(); updateStepSummaries();
+  renderSelImages(); renderFooters(); renderPromo(); updateMailtoLabels(); updateStepSummaries();
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -1307,7 +1329,14 @@ function updateStepSummaries(){
   // UTM summary
   const utmBase = (document.getElementById('utm-base')?.value||'').trim();
   const utmSum = document.getElementById('step-utm-sum');
-  if(utmSum) utmSum.textContent = utmBase ? utmBase.replace(/https?:\/\//,'').slice(0,30) : 'Optional';
+  if(utmSum){
+    if(isMailtoMode(1)){
+      const me = (document.getElementById('mailto-email-1')?.value||'').trim();
+      utmSum.textContent = me ? '✉️ ' + me.slice(0,25) : '✉️ mailto';
+    } else {
+      utmSum.textContent = utmBase ? utmBase.replace(/https?:\/\//,'').slice(0,30) : 'Optional';
+    }
+  }
 
   // Footer summary
   const opts = FOOTERS[market]||[];
@@ -2100,11 +2129,15 @@ function renderResults(c,progs){
   ]);
 
   // Link info from Step 3
+  const pUrl = buildUrl(1)||'nie ustawiono';
+  const sUrl = buildUrl(2)||'nie ustawiono';
+  const pDisplay = pUrl.startsWith('mailto:') ? '✉️ ' + decodeURIComponent(pUrl.replace('mailto:','')) : pUrl;
+  const sDisplay = sUrl.startsWith('mailto:') ? '✉️ ' + decodeURIComponent(sUrl.replace('mailto:','')) : sUrl;
   h+=`<div class="rcard" style="background:#F7FBFF;border-color:#CCE8F8">
     <div class="rcard-head"><span class="rcard-tag tag-p">🔗 Links (from Step 3)</span></div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-      <div style="font-size:11px;color:var(--sub)">🟡 Primary: <strong style="color:var(--txt);word-break:break-all">${esc(buildUrl(1)||'nie ustawiono')}</strong></div>
-      <div style="font-size:11px;color:var(--sub)">🔵 Secondary: <strong style="color:var(--txt);word-break:break-all">${esc(buildUrl(2)||'nie ustawiono')}</strong></div>
+      <div style="font-size:11px;color:var(--sub)">🟡 Primary: <strong style="color:var(--txt);word-break:break-all">${esc(pDisplay)}</strong></div>
+      <div style="font-size:11px;color:var(--sub)">🔵 Secondary: <strong style="color:var(--txt);word-break:break-all">${esc(sDisplay)}</strong></div>
     </div>
     <div style="margin-top:6px;font-size:10px;color:var(--sub)">← Zmień linki i UTM w kroku 3 wyżej</div>
   </div>`;
@@ -2356,7 +2389,52 @@ function showPlaintextPreview(){
 // ═══════════════════════════════════════════════════════════
 //  UTM
 // ═══════════════════════════════════════════════════════════
+function updateMailtoLabels(){
+  const t = {
+    pl: { lbl1:'✉️ Odpisz na email', lbl2:'✉️ Odpisz', emailPh:'adres@angloville.pl', subPh:'Temat, np. Rezerwacja miejsca', urlPh:'← wpisz URL wyżej' },
+    com: { lbl1:'✉️ Reply to email', lbl2:'✉️ Reply', emailPh:'email@angloville.com', subPh:'Subject line, e.g. Book my spot', urlPh:'← enter URL above' },
+    it: { lbl1:'✉️ Reply to email', lbl2:'✉️ Reply', emailPh:'email@angloville.com', subPh:'Subject line, e.g. Prenota il mio posto', urlPh:'← enter URL above' }
+  };
+  const l = t[market] || t.com;
+  const s = (id,v) => { const el=document.getElementById(id); if(el) el.textContent=v; };
+  const p = (id,v) => { const el=document.getElementById(id); if(el) el.placeholder=v; };
+  s('mailto-lbl-1', l.lbl1);
+  s('mailto-lbl-2', l.lbl2);
+  p('mailto-email-1', l.emailPh);
+  p('mailto-email-2', l.emailPh);
+  p('mailto-subject-1', l.subPh);
+  p('mailto-subject-2', l.subPh);
+  // Update the "wpisz URL" hint too
+  const el1=document.getElementById('utm-out1');
+  const el2=document.getElementById('utm-out2');
+  if(el1 && !buildUrl(1)) el1.textContent = l.urlPh;
+  if(el2 && !buildUrl(2)) el2.textContent = l.urlPh;
+}
+function toggleMailto(which){
+  const isMailto = document.getElementById('mailto-toggle-'+which).checked;
+  document.getElementById('url-mode-'+which).style.display = isMailto ? 'none' : '';
+  document.getElementById('mailto-mode-'+which).style.display = isMailto ? '' : 'none';
+  utmPrev();
+}
+function isMailtoMode(which){
+  return document.getElementById('mailto-toggle-'+which)?.checked || false;
+}
+function buildMailtoUrl(which){
+  const email = (document.getElementById('mailto-email-'+which)?.value||'').trim();
+  if(!email) return '';
+  const subject = (document.getElementById('mailto-subject-'+which)?.value||'').trim();
+  return 'mailto:' + encodeURIComponent(email) + (subject ? '?subject=' + encodeURIComponent(subject) : '');
+}
 function buildUrl(which){
+  if(isMailtoMode(which)) return buildMailtoUrl(which);
+  // If secondary is in URL mode but empty, fall back to primary (which could be mailto)
+  if(which===2){
+    const base2=(document.getElementById('utm-base2')?.value||'').trim();
+    if(!base2){
+      // fallback to primary
+      if(isMailtoMode(1)) return buildMailtoUrl(1);
+    }
+  }
   const base1=(document.getElementById('utm-base')?.value||'').trim();
   const base2=(document.getElementById('utm-base2')?.value||'').trim();
   const base = which===2 ? (base2||base1) : base1;
@@ -2369,8 +2447,19 @@ function buildUrl(which){
   return base+(pts.length?(base.includes('?')?'&':'?')+pts.join('&'):'');
 }
 function utmPrev(){
-  const el1=document.getElementById('utm-out1');if(el1)el1.textContent=buildUrl(1)||'← wpisz URL wyżej';
-  const el2=document.getElementById('utm-out2');if(el2)el2.textContent=buildUrl(2)||'← wpisz URL wyżej';
+  const el1=document.getElementById('utm-out1');
+  if(el1){
+    const url1 = buildUrl(1);
+    if(isMailtoMode(1) && url1) el1.textContent = '✉️ ' + decodeURIComponent(url1.replace('mailto:',''));
+    else el1.textContent = url1 || '← wpisz URL wyżej';
+  }
+  const el2=document.getElementById('utm-out2');
+  if(el2){
+    const url2 = buildUrl(2);
+    if((isMailtoMode(2) || (isMailtoMode(1) && !(document.getElementById('utm-base2')?.value||'').trim())) && url2)
+      el2.textContent = '✉️ ' + decodeURIComponent(url2.replace('mailto:',''));
+    else el2.textContent = url2 || '← wpisz URL wyżej';
+  }
   updateStepSummaries();
 }
 
@@ -2957,6 +3046,11 @@ function resetAll(){
   otherOptionsEnabled=false;otherOptionsHeading='';otherOptionsCards=[];
   emailType='marketing';
   promoSeason=null;promoPhase=null;promoDate='';promoDiscount='';
+  // Reset mailto toggles
+  [1,2].forEach(n=>{
+    const tog=document.getElementById('mailto-toggle-'+n);
+    if(tog){tog.checked=false;toggleMailto(n);}
+  });
   document.getElementById('extra').value='';
   document.getElementById('results').style.display='none';
   document.getElementById('results').innerHTML='';
