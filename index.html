@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>✉️</text></svg>">
-<title>Angloville — Email Generator</title>
+<title>Angloville – Email Generator</title>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -682,7 +682,7 @@ input.ef:focus,textarea.ef:focus{outline:none;border-color:var(--b)}
       <!-- HERO -->
       <div style="margin-bottom:18px;">
         <div style="font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--sub);margin-bottom:8px;">
-          🖼 Hero image — appears below headline
+          🖼 Hero image – appears below headline
         </div>
         <div id="img-tabs-hero" class="img-tabs"></div>
         <div id="img-gallery-hero" class="img-gallery"></div>
@@ -697,7 +697,7 @@ input.ef:focus,textarea.ef:focus{outline:none;border-color:var(--b)}
       <!-- BODY IMAGES -->
       <div>
         <div style="font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--sub);margin-bottom:8px;">
-          📸 Body images — appear between content sections (max 2)
+          📸 Body images – appear between content sections (max 2)
         </div>
         <div id="img-tabs-body" class="img-tabs"></div>
         <div id="img-gallery-body" class="img-gallery"></div>
@@ -795,7 +795,7 @@ input.ef:focus,textarea.ef:focus{outline:none;border-color:var(--b)}
       <button type="button" class="footer-edit-btn" id="footer-edit-toggle" onclick="toggleFooterEdit()">✏️ Edytuj footer</button>
       <div class="footer-edit-wrap" id="footer-edit-wrap">
         <div style="font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--sub);margin-bottom:5px;display:flex;justify-content:space-between;align-items:center">
-          <span>Footer content — editable</span>
+          <span>Footer content – editable</span>
           <button class="btn-cp" onclick="resetFooter()">&#8635; Reset to default</button>
         </div>
         <textarea id="footer-editor" rows="4"
@@ -815,7 +815,7 @@ input.ef:focus,textarea.ef:focus{outline:none;border-color:var(--b)}
     <div class="step-head">
       <div class="step-num">5</div>
       <div class="step-lbl">Additional instructions</div>
-      <div class="step-hint">Optional — AI will follow these</div>
+      <div class="step-hint">Optional – AI will follow these</div>
     </div>
     <div class="step-body">
       <textarea class="notes" id="extra" rows="3"
@@ -843,7 +843,7 @@ input.ef:focus,textarea.ef:focus{outline:none;border-color:var(--b)}
           <div class="etype-icon">✉️</div>
           <div>
             <div class="etype-t">Personal Email</div>
-            <div class="etype-d">Zwykły tekst jak od człowieka — person-to-person, bez grafik i przycisków</div>
+            <div class="etype-d">Zwykły tekst jak od człowieka – person-to-person, bez grafik i przycisków</div>
           </div>
         </button>
       </div>
@@ -932,7 +932,7 @@ const IMG_LIB = {
 };
 
 // ═══════════════════════════════════════════════════════════
-//  FOOTERS — per platform (Mailchimp / HubSpot)
+//  FOOTERS – per platform (Mailchimp / HubSpot)
 // ═══════════════════════════════════════════════════════════
 const FOOTERS = {
   com:[
@@ -983,8 +983,8 @@ Key messages: fully sponsored (free accommodation + meals), no teaching experien
         {id:'poland-adult',e:'🏡',t:'Poland Adult',                   d:'Warsaw, Wroclaw & Krakow'},
       ]},
       {lbl:'Sponsored Roles',progs:[
-        {id:'esl-mentor', e:'🎓',t:'ESL Mentor',                     d:'Sponsored — no experience needed'},
-        {id:'act-leader', e:'🏃',t:'Activity Leader',                d:'Sponsored — lead cultural exchange'},
+        {id:'esl-mentor', e:'🎓',t:'ESL Mentor',                     d:'Sponsored – no experience needed'},
+        {id:'act-leader', e:'🏃',t:'Activity Leader',                d:'Sponsored – lead cultural exchange'},
         {id:'prog-coord', e:'📋',t:'Programme Coordinator',          d:'Organise programmes across Europe'},
       ]},
       {lbl:'TEFL in Asia',progs:[
@@ -1038,13 +1038,13 @@ Język: WYŁĄCZNIE po polsku.`,
         {id:'malta',     e:'🇲🇹',t:'Malta',                          d:'13–18 lat'},
         {id:'anglia',    e:'🇬🇧',t:'Anglia',                         d:'13–18 lat'},
       ]},
-      {lbl:'Europa — Junior Plus',progs:[
+      {lbl:'Europa – Junior Plus',progs:[
         {id:'uk-trip',   e:'🎡',t:'UK Trip',                         d:'Londyn, Oxford, Cambridge · 12–18'},
         {id:'eurotrip',  e:'🌍',t:'Eurotrip',                        d:'Paryż, Berlin, Bruksela · 12–18'},
         {id:'baltic',    e:'🌊',t:'Baltic Trip',                     d:'Kraje bałtyckie · 12–18'},
         {id:'italy-t',   e:'🍕',t:'Italy Trip',                      d:'Włochy z native speakerami · 12–18'},
       ]},
-      {lbl:'Świat — Junior',progs:[
+      {lbl:'Świat – Junior',progs:[
         {id:'nyk',       e:'🗽',t:'Nowy Jork',                       d:'14–18 lat'},
         {id:'kali',      e:'🌴',t:'Kalifornia',                      d:'14–18 lat'},
         {id:'floryda',   e:'🏖',t:'Floryda',                         d:'14–18 lat'},
@@ -1124,7 +1124,7 @@ let selFoot  = null;
 let selPlatform = 'mc'; // 'mc' = Mailchimp, 'hs' = HubSpot
 let emailType   = 'marketing'; // 'marketing' or 'plaintext'
 let libCat   = null;
-let activeSlot = 'hero'; // 'hero' or 'body' — which gallery is active
+let activeSlot = 'hero'; // 'hero' or 'body' – which gallery is active
 
 // Dates table state
 let datesEnabled = false;
@@ -1289,7 +1289,7 @@ function getPromoContext(){
   if(!phase) return '';
   let ctx = `PROMO CONTEXT (treat as secondary info, not the main topic): ${phase.name} promotion, deadline: ${promoDate || 'TBD'}.`;
   if(promoDiscount) ctx += ` Discount: ${promoDiscount}.`;
-  ctx += ` Mention this naturally as urgency/limitation near the end or in PS — do NOT make it the headline or main focus of the email.`;
+  ctx += ` Mention this naturally as urgency/limitation near the end or in PS – do NOT make it the headline or main focus of the email.`;
   return ctx;
 }
 
@@ -1527,7 +1527,7 @@ function toggleSlotImg(slot, url, thumb, label, heroUrl, bodyUrl){
     const idx = selBody.findIndex(s=>s.url===url);
     if(idx >= 0) selBody.splice(idx,1);
     else if(selBody.length < 2) selBody.push({url, thumb, label, heroUrl: heroUrl||url, bodyUrl: bodyUrl||url});
-    // max 2 body images — ignore click if already 2 selected
+    // max 2 body images – ignore click if already 2 selected
   }
   renderGallery('hero'); renderGallery('body');
   renderSelImages();
@@ -1588,9 +1588,9 @@ function renderFooters(){
 
   const footerGrid = document.getElementById('footer-grid');
   if(opts.length <= 1){
-    // Single option — just show name, no grid needed
+    // Single option – just show name, no grid needed
     footerGrid.innerHTML = current
-      ? `<div style="font-size:12px;color:var(--txt);padding:6px 0"><strong>${current.name}</strong> <span style="color:var(--sub);font-size:11px">— ${current.prev}</span></div>`
+      ? `<div style="font-size:12px;color:var(--txt);padding:6px 0"><strong>${current.name}</strong> <span style="color:var(--sub);font-size:11px">– ${current.prev}</span></div>`
       : '';
     footerGrid.style.display = 'block';
   } else {
@@ -1782,11 +1782,11 @@ function rteField(id, html, opts){
       <div class="rte-sep"></div>
       <select class="rte-fontsize" title="Font size" onchange="rteFontSize(this.value);this.value='';">
         <option value="" disabled selected>Aa</option>
-        <option value="1">S — 12px</option>
-        <option value="3">M — 16px</option>
-        <option value="4">L — 18px</option>
-        <option value="5">XL — 22px</option>
-        <option value="6">XXL — 28px</option>
+        <option value="1">S – 12px</option>
+        <option value="3">M – 16px</option>
+        <option value="4">L – 18px</option>
+        <option value="5">XL – 22px</option>
+        <option value="6">XXL – 28px</option>
       </select>
       <div class="rte-sep"></div>
       ${colorBtns}
@@ -1857,7 +1857,7 @@ function renderEmojiPicker(pickerId, query){
     ).join('');
   }
 
-  // Check if structure already exists (search input rendered) — if so, only update grid + cats
+  // Check if structure already exists (search input rendered) – if so, only update grid + cats
   const existingSearch = el.querySelector('.emoji-search');
   if(existingSearch){
     const catsEl = el.querySelector('.emoji-cats-wrap');
@@ -1865,7 +1865,7 @@ function renderEmojiPicker(pickerId, query){
     const gridEl = el.querySelector('.emoji-grid');
     if(gridEl) gridEl.innerHTML = gridHtml;
   } else {
-    // First render — build full structure
+    // First render – build full structure
     el.innerHTML = `
       <div class="emoji-search-wrap">
         <input type="text" class="emoji-search" placeholder="🔍 Szukaj emoji… np. heart, fire, polska"
@@ -1890,7 +1890,7 @@ function rteInsertText(editorId, text){
   const ed = document.getElementById(editorId);
   if(ed) ed.focus();
   document.execCommand('insertText', false, text);
-  // Don't close picker — let user add multiple emojis
+  // Don't close picker – let user add multiple emojis
 }
 function rteInsertDivider(editorId){
   const ed = document.getElementById(editorId);
@@ -1932,7 +1932,7 @@ function toggleDates(){
   if(toggle) toggle.classList.toggle('on', datesEnabled);
   if(toggle){
     const hint = toggle.querySelector('.dates-toggle-hint');
-    if(hint) hint.textContent = datesEnabled ? 'ON — tabela dat w mailu' : 'OFF — kliknij żeby włączyć';
+    if(hint) hint.textContent = datesEnabled ? 'ON – tabela dat w mailu' : 'OFF – kliknij żeby włączyć';
   }
   if(editor) editor.classList.toggle('show', datesEnabled);
   // Add one empty row if enabling with no rows
@@ -1992,7 +1992,7 @@ function renderResults(c,progs){
     ['e-pre','Preheader',c.preheader,1],
   ]);
 
-  // Headline + Opening — now with RTE
+  // Headline + Opening – now with RTE
   h+=`<div class="rcard">
     <div class="rcard-head"><span class="rcard-tag tag-b">Headline + Opening</span></div>
     <div class="ef-group">
@@ -2022,7 +2022,7 @@ function renderResults(c,progs){
     <input type="hidden" id="greeting-val" value="">
   </div>`;
 
-  // Body — RTE fields
+  // Body – RTE fields
   h+=`<div class="rcard">
     <div class="rcard-head"><span class="rcard-tag tag-b">Body</span></div>
     <div class="ef-group">
@@ -2030,7 +2030,7 @@ function renderResults(c,progs){
       ${rteField('e-p1', textToHtml(c.body_p1))}
     </div>
     <div class="ef-group">
-      <div class="ef-label"><span>Section 2 — emoji lines</span></div>
+      <div class="ef-label"><span>Section 2 – emoji lines</span></div>
       ${rteField('e-p2', textToHtml(c.body_p2))}
     </div>
     <div class="ef-group">
@@ -2051,7 +2051,7 @@ function renderResults(c,progs){
   h+=`<div class="dates-toggle${datesEnabled?' on':''}" onclick="toggleDates()">
     <div class="dates-toggle-switch"></div>
     <div class="dates-toggle-lbl">📅 Dates table</div>
-    <div class="dates-toggle-hint">${datesEnabled ? 'ON — tabela dat w mailu' : 'OFF — kliknij żeby włączyć'}</div>
+    <div class="dates-toggle-hint">${datesEnabled ? 'ON – tabela dat w mailu' : 'OFF – kliknij żeby włączyć'}</div>
   </div>`;
 
   const dtLabels = {com:['Programme','Dates','Note'],pl:['Program','Terminy','Uwagi'],it:['Programma','Date','Note']};
@@ -2094,7 +2094,7 @@ function renderResults(c,progs){
   h+=`<div class="dates-toggle other-options-toggle${otherOptionsEnabled?' on':''}" onclick="toggleOtherOptions()">
     <div class="dates-toggle-switch"></div>
     <div class="dates-toggle-lbl">🎯 Inne programy Angloville</div>
-    <div class="dates-toggle-hint other-options-toggle-hint">${otherOptionsEnabled ? 'ON — kafelki w mailu' : 'OFF — kliknij żeby włączyć'}</div>
+    <div class="dates-toggle-hint other-options-toggle-hint">${otherOptionsEnabled ? 'ON – kafelki w mailu' : 'OFF – kliknij żeby włączyć'}</div>
   </div>`;
 
   h+=`<div class="dates-editor${otherOptionsEnabled?' show':''}" id="other-options-editor">
@@ -2108,7 +2108,7 @@ function renderResults(c,progs){
       <div id="oo-cards-container"></div>
       <button type="button" class="dates-add" onclick="addOtherOptionCard()" style="margin-top:8px">+ Dodaj kafelek</button>
       <div style="font-size:10px;color:var(--sub);margin-top:10px;line-height:1.5;padding:8px;background:#fff;border-radius:6px">
-        💡 <strong>Tip:</strong> W "Additional instructions" wpisz "dodaj inne opcje" lub "cross-sell" — AI automatycznie zaproponuje powiązane programy.
+        💡 <strong>Tip:</strong> W "Additional instructions" wpisz "dodaj inne opcje" lub "cross-sell" – AI automatycznie zaproponuje powiązane programy.
       </div>
     </div>
   </div>`;
@@ -2190,7 +2190,7 @@ function renderPlaintextResults(c, progs){
       ${rteField('pt-greeting', esc(c.greeting||''))}
     </div>
     <div class="ef-group">
-      <div class="ef-label"><span>Body — main content</span></div>
+      <div class="ef-label"><span>Body – main content</span></div>
       ${rteField('pt-body', textToHtml(c.body))}
     </div>
     <div class="ef-group">
@@ -2212,7 +2212,7 @@ function renderPlaintextResults(c, progs){
 
   h+=`<div class="mc-box">
     <h3>📧 Send to Mailchimp</h3>
-    <p>Personal email — plain text style, full width, no images or buttons. Ready for Mailchimp.</p>
+    <p>Personal email – plain text style, full width, no images or buttons. Ready for Mailchimp.</p>
     <div class="mc-btns">
       <button class="btn-out" onclick="showPlaintextPreview()">👁 Preview email</button>
       <button class="btn-gen" id="pt-mc-btn" onclick="sendPtMC()" style="padding:10px 22px;font-size:13px">📧 Create Mailchimp draft</button>
@@ -2303,7 +2303,7 @@ function buildPlaintextEmailHtml(c, url){
 
   const sigBlock = buildPtSigBlock(FONT);
 
-  // Full-width email — no card, no grey background, no max-width box
+  // Full-width email – no card, no grey background, no max-width box
   // Just white background edge to edge, like a real person's email
   return `<!DOCTYPE html>
 <html><head>
@@ -2414,7 +2414,7 @@ function buildMailtoUrl(which){
   const email = (document.getElementById('mailto-email-'+which)?.value||'').trim();
   if(!email) return '';
   const subject = (document.getElementById('mailto-subject-'+which)?.value||'').trim();
-  return 'mailto:' + encodeURIComponent(email) + (subject ? '?subject=' + encodeURIComponent(subject) : '');
+  return 'mailto:' + email + (subject ? '?subject=' + encodeURIComponent(subject) : '');
 }
 function buildUrl(which){
   if(isMailtoMode(which)) return buildMailtoUrl(which);
@@ -2455,7 +2455,7 @@ function utmPrev(){
 }
 
 // ═══════════════════════════════════════════════════════════
-//  EMAIL HTML BUILDER — clean editorial style (like EF/screenshot)
+//  EMAIL HTML BUILDER – clean editorial style (like EF/screenshot)
 // ═══════════════════════════════════════════════════════════
 function buildEmailHTML(c, ctaUrl1, ctaUrl2, imgs) {
   const FONT = "Arial,'Helvetica Neue',Helvetica,sans-serif";
@@ -2778,7 +2778,7 @@ function toggleDates(){
   const tog = document.querySelector('.dates-toggle');
   if(tog){
     tog.classList.toggle('on', datesEnabled);
-    tog.querySelector('.dates-toggle-hint').textContent = datesEnabled ? 'ON — tabela dat w mailu' : 'OFF — kliknij żeby włączyć';
+    tog.querySelector('.dates-toggle-hint').textContent = datesEnabled ? 'ON – tabela dat w mailu' : 'OFF – kliknij żeby włączyć';
   }
   const ed = document.getElementById('dates-editor');
   if(ed) ed.classList.toggle('show', datesEnabled);
@@ -2872,8 +2872,8 @@ function toggleOtherOptions(){
   if(tog){
     tog.classList.toggle('on', otherOptionsEnabled);
     tog.querySelector('.other-options-toggle-hint').textContent = otherOptionsEnabled 
-      ? 'ON — kafelki w mailu' 
-      : 'OFF — kliknij żeby włączyć';
+      ? 'ON – kafelki w mailu' 
+      : 'OFF – kliknij żeby włączyć';
   }
   const ed = document.getElementById('other-options-editor');
   if(ed) ed.classList.toggle('show', otherOptionsEnabled);
