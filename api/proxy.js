@@ -17,6 +17,7 @@ module.exports = async function handler(req, res) {
     const imgNote  = imageCount > 0 ? `The email will include ${imageCount} image(s).` : 'No images.';
     const langNote = lang === 'pl' ? 'Write EVERYTHING in Polish. Do NOT use English.'
       : lang === 'it' ? 'Write EVERYTHING in Italian. Do NOT use English.'
+      : lang === 'pt-br' ? 'Write EVERYTHING in Brazilian Portuguese (português do Brasil). Do NOT use English.'
       : 'Write in British English (programme, colour, travelling, organised).';
 
     let prompt;
@@ -34,6 +35,7 @@ ADDITIONAL INSTRUCTIONS:
 ${extra || 'None'}
 
 LANGUAGE RULE: ${langNote}
+TYPOGRAPHY RULE: NEVER use the em dash (—). For parenthetical breaks use a comma, a colon or the en dash (–); for ranges (dates, times, numbers, ages) always use the en dash (–), e.g. "21–28 Jun", "14–18". This applies to EVERY field: subject, preheader, headline, intro, body, CTA, PS and closing.
 
 ═══ COPYWRITING RULES (follow these strictly) ═══
 
@@ -94,6 +96,7 @@ ${extra || 'None'}
 ${imgNote}
 
 LANGUAGE RULE: ${langNote}
+TYPOGRAPHY RULE: NEVER use the em dash (—). For parenthetical breaks use a comma, a colon or the en dash (–); for ranges (dates, times, numbers, ages) always use the en dash (–), e.g. "21–28 Jun", "14–18". This applies to EVERY field: subject, preheader, headline, intro, body, CTA, PS and closing.
 
 ═══ SUBJECT LINE MASTERY (this is the MOST critical element) ═══
 - Max 50 characters — must be fully visible on mobile
@@ -157,6 +160,7 @@ AVAILABLE PROGRAMMES BY MARKET (use these for other_options):
 - COM (English): Italy Junior (product: angloville.com/italy-junior/, signup: angloville.com/apply/), Poland Junior (angloville.com/poland-junior/), Malta Junior (angloville.com/malta-junior/), Poland Adult (angloville.com/poland-adult/), ESL Mentor (angloville.com/esl-mentor/)
 - PL (Polish): Włochy Junior (product: angloville.pl/wlochy-junior/, signup: angloville.pl/zapisz-sie/), Polska Junior (angloville.pl/polska-junior/), Malta Junior (angloville.pl/malta-junior/), Anglia Roehampton (angloville.pl/anglia/), Obozy dla Dorosłych (angloville.pl/dla-doroslych/)
 - IT (Italian): Italia Junior (product: angloville.it/italia-junior/, signup: angloville.it/iscriviti/), Polonia Junior (angloville.it/polonia-junior/), Malta Junior (angloville.it/malta-junior/), Londra (angloville.it/londra/)
+- BR (Brazilian Portuguese): English Village Polônia (product: angloville.com.br/adultos/polonia/, signup: angloville.com.br/#formularz), English Village Malta (angloville.com.br/adultos/english-village-em-malta/), Malta Jovens (angloville.com.br/jovens/malta-escola-parceira/), Reino Unido Jovens (angloville.com.br/jovens/reino-unido-escola-parceira/), Eurotrip (angloville.com.br/jovens/eurotrip/)
 
 Return ONLY valid JSON, no markdown, no backticks.
 
