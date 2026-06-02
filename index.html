@@ -140,6 +140,19 @@ body{font-family:'Plus Jakarta Sans',-apple-system,BlinkMacSystemFont,'Segoe UI'
 .img-tab:hover{border-color:var(--y);color:var(--y)}
 .img-tab.on{background:var(--y);border-color:var(--y);color:#fff}
 
+/* ── CTA MODE TABS ── */
+.cta-mode-tabs{display:flex;gap:3px;background:#f3f4f6;border-radius:7px;padding:3px;margin-bottom:7px}
+.cta-mode-tab{
+  flex:1;padding:5px 6px;border:none;background:transparent;
+  color:var(--sub);font-family:'Plus Jakarta Sans',sans-serif;
+  font-size:11px;font-weight:600;border-radius:5px;cursor:pointer;
+  transition:all .12s;white-space:nowrap;
+}
+.cta-mode-tab:hover:not(.on){color:var(--txt);background:#e5e7eb}
+.cta-mode-tab.on{background:var(--y);color:#fff}
+.cta-mode-tab.on[data-mode="whatsapp"]{background:#25D366}
+.cta-mode-tab.on[data-mode="reply"]{background:#3A9AD9}
+
 .img-gallery{
   display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));
   gap:6px;margin-bottom:10px;
@@ -776,33 +789,41 @@ input.ef:focus,textarea.ef:focus{outline:none;border-color:var(--b)}
       <div class="utm-wrap">
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
           <div class="ef-group" style="margin:0">
-            <div class="ef-label" style="margin-bottom:4px;display:flex;align-items:center;justify-content:space-between">
-              <span>🟡 Primary CTA link</span>
-              <label style="display:flex;align-items:center;gap:5px;font-size:10px;font-weight:500;color:var(--sub);cursor:pointer">
-                <input type="checkbox" id="mailto-toggle-1" onchange="toggleMailto(1)" style="accent-color:var(--y);cursor:pointer"> <span id="mailto-lbl-1">✉️ Reply to email</span>
-              </label>
+            <div class="ef-label" style="margin-bottom:6px"><span>🟡 Primary CTA (yellow button)</span></div>
+            <div class="cta-mode-tabs">
+              <button type="button" class="cta-mode-tab on" data-which="1" data-mode="link" onclick="setCtaMode(1,'link')">🔗 Link</button>
+              <button type="button" class="cta-mode-tab" data-which="1" data-mode="whatsapp" onclick="setCtaMode(1,'whatsapp')">WhatsApp</button>
+              <button type="button" class="cta-mode-tab" data-which="1" data-mode="reply" onclick="setCtaMode(1,'reply')"><span id="cta-reply-lbl-1">✉️ Odpisz</span></button>
             </div>
-            <div id="url-mode-1">
+            <div id="cta-link-1">
               <input type="text" class="ef" id="utm-base" placeholder="https://angloville.com/apply/" oninput="utmPrev()">
             </div>
-            <div id="mailto-mode-1" style="display:none">
+            <div id="cta-whatsapp-1" style="display:none">
+              <input type="tel" class="ef" id="wa-phone-1" placeholder="np. 48500600700 (z kodem kraju)" oninput="utmPrev()" style="margin-bottom:5px">
+              <input type="text" class="ef" id="wa-msg-1" placeholder="Wiadomość startowa (opcjonalnie)" oninput="utmPrev()">
+            </div>
+            <div id="cta-reply-1" style="display:none">
               <input type="email" class="ef" id="mailto-email-1" placeholder="adres@angloville.com" oninput="utmPrev()" style="margin-bottom:5px">
-              <input type="text" class="ef" id="mailto-subject-1" placeholder="Subject line, np. Rezerwacja miejsca" oninput="utmPrev()">
+              <input type="text" class="ef" id="mailto-subject-1" placeholder="Temat, np. Rezerwacja miejsca" oninput="utmPrev()">
             </div>
           </div>
           <div class="ef-group" style="margin:0">
-            <div class="ef-label" style="margin-bottom:4px;display:flex;align-items:center;justify-content:space-between">
-              <span>🔵 Secondary CTA link</span>
-              <label style="display:flex;align-items:center;gap:5px;font-size:10px;font-weight:500;color:var(--sub);cursor:pointer">
-                <input type="checkbox" id="mailto-toggle-2" onchange="toggleMailto(2)" style="accent-color:var(--y);cursor:pointer"> <span id="mailto-lbl-2">✉️ Reply</span>
-              </label>
+            <div class="ef-label" style="margin-bottom:6px"><span>🔵 Secondary CTA (blue button)</span></div>
+            <div class="cta-mode-tabs">
+              <button type="button" class="cta-mode-tab on" data-which="2" data-mode="link" onclick="setCtaMode(2,'link')">🔗 Link</button>
+              <button type="button" class="cta-mode-tab" data-which="2" data-mode="whatsapp" onclick="setCtaMode(2,'whatsapp')">WhatsApp</button>
+              <button type="button" class="cta-mode-tab" data-which="2" data-mode="reply" onclick="setCtaMode(2,'reply')"><span id="cta-reply-lbl-2">✉️ Odpisz</span></button>
             </div>
-            <div id="url-mode-2">
-              <input type="text" class="ef" id="utm-base2" placeholder="(same as primary)" oninput="utmPrev()">
+            <div id="cta-link-2">
+              <input type="text" class="ef" id="utm-base2" placeholder="(tak jak primary)" oninput="utmPrev()">
             </div>
-            <div id="mailto-mode-2" style="display:none">
+            <div id="cta-whatsapp-2" style="display:none">
+              <input type="tel" class="ef" id="wa-phone-2" placeholder="np. 48500600700 (z kodem kraju)" oninput="utmPrev()" style="margin-bottom:5px">
+              <input type="text" class="ef" id="wa-msg-2" placeholder="Wiadomość startowa (opcjonalnie)" oninput="utmPrev()">
+            </div>
+            <div id="cta-reply-2" style="display:none">
               <input type="email" class="ef" id="mailto-email-2" placeholder="adres@angloville.com" oninput="utmPrev()" style="margin-bottom:5px">
-              <input type="text" class="ef" id="mailto-subject-2" placeholder="Subject line" oninput="utmPrev()">
+              <input type="text" class="ef" id="mailto-subject-2" placeholder="Temat" oninput="utmPrev()">
             </div>
           </div>
         </div>
@@ -1227,6 +1248,7 @@ let selBody  = [];     // max 2 body images
 let selFoot  = null;
 let selPlatform = 'mc'; // 'mc' = Mailchimp, 'hs' = HubSpot
 let emailType   = 'marketing'; // 'marketing' or 'plaintext'
+let ctaMode = {1:'link', 2:'link'}; // per-button mode: 'link' | 'whatsapp' | 'reply'
 let libCat   = null;
 let activeSlot = 'hero'; // 'hero' or 'body' – which gallery is active
 
@@ -1428,14 +1450,17 @@ function updateStepSummaries(){
   if(imgSum) imgSum.textContent = imgCount > 0 ? imgCount + ' selected' : 'Optional';
 
   // UTM summary
-  const utmBase = (document.getElementById('utm-base')?.value||'').trim();
   const utmSum = document.getElementById('step-utm-sum');
   if(utmSum){
+    const u1 = buildUrl(1);
     if(isMailtoMode(1)){
       const me = (document.getElementById('mailto-email-1')?.value||'').trim();
-      utmSum.textContent = me ? '✉️ ' + me.slice(0,25) : '✉️ mailto';
+      utmSum.textContent = me ? '✉️ ' + me.slice(0,25) : '✉️ reply';
+    } else if(isWhatsAppMode(1)){
+      const ph = (document.getElementById('wa-phone-1')?.value||'').replace(/[^\d]/g,'');
+      utmSum.textContent = ph ? '🟢 +' + ph : '🟢 WhatsApp';
     } else {
-      utmSum.textContent = utmBase ? utmBase.replace(/https?:\/\//,'').slice(0,30) : 'Optional';
+      utmSum.textContent = u1 ? u1.replace(/https?:\/\//,'').slice(0,30) : 'Optional';
     }
   }
 
@@ -2236,8 +2261,8 @@ function renderResults(c,progs){
   // Link info from Step 3
   const pUrl = buildUrl(1)||'nie ustawiono';
   const sUrl = buildUrl(2)||'nie ustawiono';
-  const pDisplay = pUrl.startsWith('mailto:') ? '✉️ ' + decodeURIComponent(pUrl.replace('mailto:','')) : pUrl;
-  const sDisplay = sUrl.startsWith('mailto:') ? '✉️ ' + decodeURIComponent(sUrl.replace('mailto:','')) : sUrl;
+  const pDisplay = prettyUrl(pUrl) || pUrl;
+  const sDisplay = prettyUrl(sUrl) || sUrl;
   h+=`<div class="rcard" style="background:#F7FBFF;border-color:#CCE8F8">
     <div class="rcard-head"><span class="rcard-tag tag-p">🔗 Links (from Step 3)</span></div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
@@ -2496,15 +2521,15 @@ function showPlaintextPreview(){
 // ═══════════════════════════════════════════════════════════
 function updateMailtoLabels(){
   const t = {
-    pl: { lbl1:'✉️ Odpisz na email', lbl2:'✉️ Odpisz', emailPh:'adres@angloville.pl', subPh:'Temat, np. Rezerwacja miejsca', urlPh:'← wpisz URL wyżej' },
-    com: { lbl1:'✉️ Reply to email', lbl2:'✉️ Reply', emailPh:'email@angloville.com', subPh:'Subject line, e.g. Book my spot', urlPh:'← enter URL above' },
-    it: { lbl1:'✉️ Reply to email', lbl2:'✉️ Reply', emailPh:'email@angloville.com', subPh:'Subject line, e.g. Prenota il mio posto', urlPh:'← enter URL above' }
+    pl: { reply:'✉️ Odpisz', emailPh:'adres@angloville.pl', subPh:'Temat, np. Rezerwacja miejsca', urlPh:'← wpisz URL wyżej' },
+    com: { reply:'✉️ Reply', emailPh:'email@angloville.com', subPh:'Subject line, e.g. Book my spot', urlPh:'← enter URL above' },
+    it: { reply:'✉️ Rispondi', emailPh:'email@angloville.com', subPh:'Oggetto, es. Prenota il mio posto', urlPh:'← enter URL above' }
   };
   const l = t[market] || t.com;
   const s = (id,v) => { const el=document.getElementById(id); if(el) el.textContent=v; };
   const p = (id,v) => { const el=document.getElementById(id); if(el) el.placeholder=v; };
-  s('mailto-lbl-1', l.lbl1);
-  s('mailto-lbl-2', l.lbl2);
+  s('cta-reply-lbl-1', l.reply);
+  s('cta-reply-lbl-2', l.reply);
   p('mailto-email-1', l.emailPh);
   p('mailto-email-2', l.emailPh);
   p('mailto-subject-1', l.subPh);
@@ -2515,31 +2540,37 @@ function updateMailtoLabels(){
   if(el1 && !buildUrl(1)) el1.textContent = l.urlPh;
   if(el2 && !buildUrl(2)) el2.textContent = l.urlPh;
 }
-function toggleMailto(which){
-  const isMailto = document.getElementById('mailto-toggle-'+which).checked;
-  document.getElementById('url-mode-'+which).style.display = isMailto ? 'none' : '';
-  document.getElementById('mailto-mode-'+which).style.display = isMailto ? '' : 'none';
+// ── CTA mode: 'link' | 'whatsapp' | 'reply' ──
+function setCtaMode(which, mode){
+  ctaMode[which] = mode;
+  ['link','whatsapp','reply'].forEach(m => {
+    const panel = document.getElementById('cta-'+m+'-'+which);
+    if(panel) panel.style.display = (m===mode) ? '' : 'none';
+  });
+  document.querySelectorAll('.cta-mode-tab[data-which="'+which+'"]').forEach(b => {
+    b.classList.toggle('on', b.getAttribute('data-mode')===mode);
+  });
   utmPrev();
 }
-function isMailtoMode(which){
-  return document.getElementById('mailto-toggle-'+which)?.checked || false;
+function syncCtaModeDom(){
+  setCtaMode(1, ctaMode[1] || 'link');
+  setCtaMode(2, ctaMode[2] || 'link');
 }
+function isMailtoMode(which){ return (ctaMode[which]||'link') === 'reply'; }
+function isWhatsAppMode(which){ return (ctaMode[which]||'link') === 'whatsapp'; }
 function buildMailtoUrl(which){
   const email = (document.getElementById('mailto-email-'+which)?.value||'').trim();
   if(!email) return '';
   const subject = (document.getElementById('mailto-subject-'+which)?.value||'').trim();
   return 'mailto:' + email + (subject ? '?subject=' + encodeURIComponent(subject) : '');
 }
-function buildUrl(which){
-  if(isMailtoMode(which)) return buildMailtoUrl(which);
-  // If secondary is in URL mode but empty, fall back to primary (which could be mailto)
-  if(which===2){
-    const base2=(document.getElementById('utm-base2')?.value||'').trim();
-    if(!base2){
-      // fallback to primary
-      if(isMailtoMode(1)) return buildMailtoUrl(1);
-    }
-  }
+function buildWaUrl(which){
+  const phone = (document.getElementById('wa-phone-'+which)?.value||'').replace(/[^\d]/g,'');
+  if(!phone) return '';
+  const msg = (document.getElementById('wa-msg-'+which)?.value||'').trim();
+  return 'https://wa.me/' + phone + (msg ? '?text=' + encodeURIComponent(msg) : '');
+}
+function buildLinkUrl(which){
   const base1=(document.getElementById('utm-base')?.value||'').trim();
   const base2=(document.getElementById('utm-base2')?.value||'').trim();
   const base = which===2 ? (base2||base1) : base1;
@@ -2551,20 +2582,32 @@ function buildUrl(which){
   });
   return base+(pts.length?(base.includes('?')?'&':'?')+pts.join('&'):'');
 }
+function buildUrl(which){
+  const mode = ctaMode[which] || 'link';
+  if(mode==='reply')    return buildMailtoUrl(which);
+  if(mode==='whatsapp') return buildWaUrl(which);
+  // link mode: if secondary link is empty, fall back to whatever primary resolves to
+  if(which===2){
+    const base2=(document.getElementById('utm-base2')?.value||'').trim();
+    if(!base2) return buildUrl(1);
+  }
+  return buildLinkUrl(which);
+}
+function prettyUrl(url){
+  if(!url) return '';
+  if(url.startsWith('mailto:')) return '✉️ ' + decodeURIComponent(url.replace('mailto:',''));
+  if(/^https?:\/\/wa\.me\//i.test(url)){
+    const m = url.match(/wa\.me\/(\d+)(?:\?text=(.*))?/i);
+    if(m) return '🟢 +' + m[1] + (m[2] ? ' · ' + decodeURIComponent(m[2]).slice(0,24) : '');
+    return '🟢 ' + url;
+  }
+  return url;
+}
 function utmPrev(){
   const el1=document.getElementById('utm-out1');
-  if(el1){
-    const url1 = buildUrl(1);
-    if(isMailtoMode(1) && url1) el1.textContent = '✉️ ' + decodeURIComponent(url1.replace('mailto:',''));
-    else el1.textContent = url1 || '← wpisz URL wyżej';
-  }
+  if(el1) el1.textContent = prettyUrl(buildUrl(1)) || '← wpisz URL wyżej';
   const el2=document.getElementById('utm-out2');
-  if(el2){
-    const url2 = buildUrl(2);
-    if((isMailtoMode(2) || (isMailtoMode(1) && !(document.getElementById('utm-base2')?.value||'').trim())) && url2)
-      el2.textContent = '✉️ ' + decodeURIComponent(url2.replace('mailto:',''));
-    else el2.textContent = url2 || '← wpisz URL wyżej';
-  }
+  if(el2) el2.textContent = prettyUrl(buildUrl(2)) || '← wpisz URL wyżej';
   updateStepSummaries();
 }
 
@@ -3164,11 +3207,12 @@ function resetAll(){
   emailType='marketing';
   promoSeason=null;promoPhase=null;promoDate='';promoDiscount='';
   _lastCampaign=null;_lastProgs=[];_activeHistId=null;clearSaved();
-  // Reset mailto toggles
-  [1,2].forEach(n=>{
-    const tog=document.getElementById('mailto-toggle-'+n);
-    if(tog){tog.checked=false;toggleMailto(n);}
+  // Reset CTA modes + fields
+  ctaMode = {1:'link', 2:'link'};
+  ['wa-phone-1','wa-msg-1','wa-phone-2','wa-msg-2','mailto-email-1','mailto-subject-1','mailto-email-2','mailto-subject-2','utm-base','utm-base2'].forEach(id=>{
+    const el=document.getElementById(id); if(el) el.value='';
   });
+  syncCtaModeDom();
   document.getElementById('extra').value='';
   document.getElementById('results').style.display='none';
   document.getElementById('results').innerHTML='';
@@ -3188,7 +3232,10 @@ const SAVE_FIELDS = [
   'e-sub','e-sub-em','e-pre','e-h1','e-intro','e-p1','e-p2','e-p3',
   'e-cta1','e-cta2','e-ps','e-ab1','e-ab2','greeting-val',
   'pt-sub','pt-sub-em','pt-greeting','pt-body','pt-cta','pt-closing','pt-ab1','pt-ab2',
-  'utm-base','dates-heading','other-options-heading',
+  'utm-base','utm-base2','utm-src','utm-med','utm-cmp','utm-cnt',
+  'wa-phone-1','wa-msg-1','wa-phone-2','wa-msg-2',
+  'mailto-email-1','mailto-subject-1','mailto-email-2','mailto-subject-2',
+  'dates-heading','other-options-heading',
 ];
 function captureFields(){
   const o = {};
@@ -3206,10 +3253,12 @@ function applyFields(o){
     if(!el) return;
     if('h' in val) el.innerHTML = val.h; else el.value = val.v;
   });
+  syncCtaModeDom();
 }
 function buildSnapshot(){
   return {
     v: 1, market, emailType, selPlatform, selFoot,
+    ctaMode: {1: ctaMode[1], 2: ctaMode[2]},
     selected: [...selected], selHero, selBody,
     datesEnabled, datesRows, datesHeading,
     otherOptionsEnabled, otherOptionsHeading, otherOptionsCards,
@@ -3244,6 +3293,7 @@ function restoreState(){
 function applyState(s){
   market = MKT[s.market] ? s.market : 'com';
   emailType = s.emailType || 'marketing';
+  ctaMode = { 1: (s.ctaMode && s.ctaMode[1]) || 'link', 2: (s.ctaMode && s.ctaMode[2]) || 'link' };
   selPlatform = s.selPlatform || 'mc';
   selFoot = s.selFoot || null;
   selected = new Set(s.selected || []);
@@ -3405,6 +3455,7 @@ function init(){
   });
   setEmailType(emailType);
   renderAll();
+  syncCtaModeDom();
   if(s && _lastCampaign){
     if(emailType === 'plaintext') renderPlaintextResults(_lastCampaign, _lastProgs);
     else renderResults(_lastCampaign, _lastProgs);
