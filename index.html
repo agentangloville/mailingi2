@@ -617,6 +617,59 @@ input.ef:focus,textarea.ef:focus{outline:none;border-color:var(--b)}
   .res-banner{flex-direction:column;align-items:flex-start}
   .img-gallery{grid-template-columns:repeat(3,1fr)}
 }
+
+/* ── HISTORY DRAWER (today's generated emails) ── */
+.hist-tab{
+  position:fixed; top:96px; right:0; z-index:120;
+  background:var(--y); color:#fff; border:none; cursor:pointer;
+  font-family:'Plus Jakarta Sans',sans-serif; font-size:11px; font-weight:700;
+  letter-spacing:.5px; padding:10px 8px; border-radius:8px 0 0 8px;
+  writing-mode:vertical-rl; text-orientation:mixed;
+  box-shadow:-2px 2px 10px rgba(0,0,0,.12); transition:background .15s;
+}
+.hist-tab:hover{background:var(--b)}
+.hist-tab .hist-tab-count{
+  display:inline-block; background:#fff; color:var(--y);
+  font-size:10px; font-weight:800; border-radius:10px; padding:1px 5px; margin-top:6px;
+}
+.hist-drawer{
+  position:fixed; top:52px; right:0; z-index:130;
+  width:300px; max-width:86vw; height:calc(100% - 52px);
+  background:#fff; border-left:1px solid var(--brd);
+  box-shadow:-6px 0 24px rgba(0,0,0,.10);
+  transform:translateX(100%); transition:transform .22s ease;
+  display:flex; flex-direction:column;
+}
+.hist-drawer.open{transform:translateX(0)}
+.hist-head{
+  display:flex; align-items:center; justify-content:space-between;
+  padding:14px 16px; border-bottom:1px solid var(--brd); flex-shrink:0;
+}
+.hist-head h3{font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;font-weight:800;color:var(--txt);margin:0}
+.hist-head .hist-sub{font-size:10px;color:var(--sub);margin-top:2px}
+.hist-close{background:none;border:none;font-size:18px;color:var(--sub);cursor:pointer;line-height:1}
+.hist-list{flex:1;overflow-y:auto;padding:10px 12px;display:flex;flex-direction:column;gap:7px}
+.hist-empty{font-size:12px;color:var(--sub);text-align:center;padding:30px 10px;line-height:1.6}
+.hist-item{
+  position:relative; border:1.5px solid var(--brd); border-radius:9px;
+  padding:9px 30px 9px 11px; cursor:pointer; background:var(--w); transition:all .12s;
+}
+.hist-item:hover{border-color:var(--y);background:var(--accent-light)}
+.hist-item.active{border-color:var(--y);background:var(--accent-light);box-shadow:0 0 0 2px rgba(59,130,246,.18)}
+.hist-item-subj{font-size:12px;font-weight:700;color:var(--txt);line-height:1.35;margin-bottom:3px;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.hist-item-meta{font-size:10px;color:var(--sub);line-height:1.4}
+.hist-item-badge{display:inline-block;font-size:9px;font-weight:700;padding:1px 6px;border-radius:10px;margin-left:5px}
+.hist-badge-mkt{background:#EAF2FE;color:#2563eb}
+.hist-badge-pt{background:#FDF3E7;color:#B86A12}
+.hist-item-rm{
+  position:absolute; top:7px; right:7px; background:none; border:none;
+  color:var(--sub); font-size:13px; cursor:pointer; line-height:1; padding:2px; border-radius:4px;
+}
+.hist-item-rm:hover{color:#E03E3E;background:#FDECEC}
+@media(max-width:580px){
+  .hist-tab{top:78px}
+}
 </style>
 </head>
 <body>
@@ -869,6 +922,19 @@ input.ef:focus,textarea.ef:focus{outline:none;border-color:var(--b)}
   <!-- RESULTS -->
   <div class="results-wrap" id="results"></div>
 
+</div>
+
+<!-- HISTORY DRAWER (today's generated emails) -->
+<button class="hist-tab" id="hist-tab" onclick="toggleHistoryPanel()">🕘 Dzisiejsze maile<span class="hist-tab-count" id="hist-tab-count">0</span></button>
+<div class="hist-drawer" id="hist-drawer">
+  <div class="hist-head">
+    <div>
+      <h3>🕘 Dzisiejsze maile</h3>
+      <div class="hist-sub" id="hist-sub">Wygenerowane dzisiaj</div>
+    </div>
+    <button class="hist-close" onclick="toggleHistoryPanel()" aria-label="Zamknij">✕</button>
+  </div>
+  <div class="hist-list" id="hist-list"></div>
 </div>
 
 <!-- PREVIEW MODAL -->
@@ -1224,7 +1290,7 @@ function setMarket(mkt, btn) {
   market = mkt; selected.clear(); selHero = null; selBody = []; selFoot = null; libCat = null; activeCat = null;
   promoSeason = null; promoPhase = null; promoDate = ''; promoDiscount = '';
   otherOptionsEnabled = false; otherOptionsHeading = ''; otherOptionsCards = [];
-  _lastCampaign = null; _lastProgs = [];
+  _lastCampaign = null; _lastProgs = []; _activeHistId = null;
   document.querySelectorAll('.mkt-pill').forEach(t=>t.classList.remove('active'));
   btn.classList.add('active');
   document.getElementById('extra').placeholder = MKT[mkt].ph;
@@ -1708,6 +1774,7 @@ async function generate(){
     if(emailType==='plaintext') renderPlaintextResults(data.campaign,progs);
     else renderResults(data.campaign,progs);
     _lastCampaign = data.campaign; _lastProgs = progs;
+    addHistoryEntry(buildSnapshot());
     saveState();
   }catch(e){showErr('Error: '+e.message);}
 
@@ -3091,7 +3158,7 @@ function resetAll(){
   otherOptionsEnabled=false;otherOptionsHeading='';otherOptionsCards=[];
   emailType='marketing';
   promoSeason=null;promoPhase=null;promoDate='';promoDiscount='';
-  _lastCampaign=null;_lastProgs=[];clearSaved();
+  _lastCampaign=null;_lastProgs=[];_activeHistId=null;clearSaved();
   // Reset mailto toggles
   [1,2].forEach(n=>{
     const tog=document.getElementById('mailto-toggle-'+n);
@@ -3135,20 +3202,24 @@ function applyFields(o){
     if('h' in val) el.innerHTML = val.h; else el.value = val.v;
   });
 }
+function buildSnapshot(){
+  return {
+    v: 1, market, emailType, selPlatform, selFoot,
+    selected: [...selected], selHero, selBody,
+    datesEnabled, datesRows, datesHeading,
+    otherOptionsEnabled, otherOptionsHeading, otherOptionsCards,
+    promoSeason, promoPhase, promoDate, promoDiscount,
+    extra: document.getElementById('extra')?.value || '',
+    campaign: _lastCampaign, progs: _lastProgs,
+    fields: captureFields(),
+    ts: Date.now(),
+  };
+}
 function saveState(){
   try{
-    const s = {
-      v: 1, market, emailType, selPlatform, selFoot,
-      selected: [...selected], selHero, selBody,
-      datesEnabled, datesRows, datesHeading,
-      otherOptionsEnabled, otherOptionsHeading, otherOptionsCards,
-      promoSeason, promoPhase, promoDate, promoDiscount,
-      extra: document.getElementById('extra')?.value || '',
-      campaign: _lastCampaign, progs: _lastProgs,
-      fields: captureFields(),
-      ts: Date.now(),
-    };
+    const s = buildSnapshot();
     localStorage.setItem(LS_KEY, JSON.stringify(s));
+    syncActiveHistory(s);
   }catch(e){ /* storage unavailable or full – ignore */ }
 }
 function clearSaved(){
@@ -3162,6 +3233,10 @@ function restoreState(){
   let s = null;
   try{ s = JSON.parse(localStorage.getItem(LS_KEY) || 'null'); }catch(e){ s = null; }
   if(!s || s.v !== 1) return null;
+  applyState(s);
+  return s;
+}
+function applyState(s){
   market = MKT[s.market] ? s.market : 'com';
   emailType = s.emailType || 'marketing';
   selPlatform = s.selPlatform || 'mc';
@@ -3181,7 +3256,136 @@ function restoreState(){
   promoDiscount = s.promoDiscount || '';
   _lastCampaign = s.campaign || null;
   _lastProgs = s.progs || [];
-  return s;
+}
+
+// ── HISTORY: today's generated emails ──
+const HIST_KEY = 'av_mailing_history_v1';
+let _activeHistId = null;
+function loadHist(){
+  let h = null;
+  try{ h = JSON.parse(localStorage.getItem(HIST_KEY) || 'null'); }catch(e){ h = null; }
+  if(!h || !Array.isArray(h.items)) h = { items: [], activeId: null };
+  return h;
+}
+function saveHist(h){
+  try{ localStorage.setItem(HIST_KEY, JSON.stringify(h)); }catch(e){}
+}
+function isToday(ts){
+  const d = new Date(ts), n = new Date();
+  return d.getFullYear()===n.getFullYear() && d.getMonth()===n.getMonth() && d.getDate()===n.getDate();
+}
+function pruneHist(h){
+  h.items = (h.items||[]).filter(it => isToday(it.ts));
+  if(!h.items.find(it => it.id === h.activeId)) h.activeId = null;
+  return h;
+}
+function histTitle(snap){
+  const c = snap.campaign || {};
+  const subj = (c.subject_emoji || c.subject || '').trim();
+  if(subj) return subj;
+  const names = (snap.progs || []).map(p => String(p).split(' – ')[0]);
+  return names.join(' + ') || 'Bez tytułu';
+}
+function histMeta(snap){
+  const flags = {com:'🇬🇧', pl:'🇵🇱', it:'🇮🇹', br:'🇧🇷'};
+  const flag = flags[snap.market] || '✉️';
+  const t = new Date(snap.ts);
+  const hh = String(t.getHours()).padStart(2,'0') + ':' + String(t.getMinutes()).padStart(2,'0');
+  const names = (snap.progs || []).map(p => String(p).split(' – ')[0]).join(', ');
+  return { flag, time: hh, names };
+}
+function addHistoryEntry(snap){
+  const h = pruneHist(loadHist());
+  const id = 'h' + Date.now() + Math.random().toString(36).slice(2,6);
+  const entry = Object.assign({ id }, snap);
+  h.items.unshift(entry);
+  if(h.items.length > 40) h.items = h.items.slice(0, 40);
+  h.activeId = id;
+  _activeHistId = id;
+  saveHist(h);
+  renderHistoryPanel();
+}
+function syncActiveHistory(snap){
+  if(!_activeHistId) return;
+  const h = loadHist();
+  const it = (h.items||[]).find(x => x.id === _activeHistId);
+  if(!it) return;
+  Object.assign(it, snap, { id: _activeHistId });
+  h.activeId = _activeHistId;
+  saveHist(h);
+  renderHistoryPanel();
+}
+function loadHistoryEntry(id){
+  const h = loadHist();
+  const entry = (h.items||[]).find(x => x.id === id);
+  if(!entry) return;
+  _activeHistId = id;
+  h.activeId = id;
+  saveHist(h);
+  applyState(entry);
+  // refresh placeholder + active market pill + email type
+  const M = MKT[market];
+  const ex = document.getElementById('extra');
+  if(ex){ ex.placeholder = M.ph; ex.value = entry.extra || ''; }
+  const lt = document.getElementById('loader-txt'); if(lt) lt.textContent = M.ltxt;
+  document.querySelectorAll('.mkt-pill').forEach(b => {
+    const oc = b.getAttribute('onclick') || '';
+    b.classList.toggle('active', oc.includes("setMarket('" + market + "'"));
+  });
+  setEmailType(emailType);
+  renderAll();
+  if(_lastCampaign){
+    if(emailType === 'plaintext') renderPlaintextResults(_lastCampaign, _lastProgs);
+    else renderResults(_lastCampaign, _lastProgs);
+    applyFields(entry.fields);
+  } else {
+    document.getElementById('results').style.display='none';
+    document.getElementById('results').innerHTML='';
+  }
+  saveState();
+  renderHistoryPanel();
+  if(window.innerWidth < 720) toggleHistoryPanel(false);
+  document.getElementById('results')?.scrollIntoView({behavior:'smooth', block:'start'});
+}
+function deleteHistoryEntry(id, ev){
+  if(ev) ev.stopPropagation();
+  const h = loadHist();
+  h.items = (h.items||[]).filter(x => x.id !== id);
+  if(h.activeId === id){ h.activeId = null; if(_activeHistId === id) _activeHistId = null; }
+  saveHist(h);
+  renderHistoryPanel();
+}
+function renderHistoryPanel(){
+  const h = pruneHist(loadHist());
+  saveHist(h);
+  const list = document.getElementById('hist-list');
+  const count = document.getElementById('hist-tab-count');
+  const sub = document.getElementById('hist-sub');
+  if(count) count.textContent = h.items.length;
+  if(sub) sub.textContent = h.items.length ? (h.items.length + ' wygenerowanych dzisiaj') : 'Wygenerowane dzisiaj';
+  if(!list) return;
+  if(!h.items.length){
+    list.innerHTML = `<div class="hist-empty">Brak maili wygenerowanych dzisiaj.<br>Wygeneruj kampanię, a pojawi się tutaj – będziesz mogła do niej wrócić.</div>`;
+    return;
+  }
+  list.innerHTML = h.items.map(it => {
+    const m = histMeta(it);
+    const badge = it.emailType === 'plaintext'
+      ? '<span class="hist-item-badge hist-badge-pt">Personal</span>'
+      : '<span class="hist-item-badge hist-badge-mkt">Campaign</span>';
+    const active = it.id === _activeHistId ? ' active' : '';
+    return `<div class="hist-item${active}" onclick="loadHistoryEntry('${it.id}')">
+      <button class="hist-item-rm" onclick="deleteHistoryEntry('${it.id}',event)" aria-label="Usuń">✕</button>
+      <div class="hist-item-subj">${esc(histTitle(it))}</div>
+      <div class="hist-item-meta">${m.flag} ${esc(m.names||'')} · ${m.time}${badge}</div>
+    </div>`;
+  }).join('');
+}
+function toggleHistoryPanel(force){
+  const d = document.getElementById('hist-drawer');
+  if(!d) return;
+  const open = (typeof force === 'boolean') ? force : !d.classList.contains('open');
+  d.classList.toggle('open', open);
 }
 function init(){
   const s = restoreState();
@@ -3202,6 +3406,9 @@ function init(){
     else renderResults(_lastCampaign, _lastProgs);
     applyFields(s.fields);
   }
+  // history panel (today's generated emails)
+  _activeHistId = loadHist().activeId || null;
+  renderHistoryPanel();
   // auto-save on any edit or interaction (capture phase so it runs after handlers mutate state)
   document.addEventListener('input', scheduleSave, true);
   document.addEventListener('change', scheduleSave, true);
