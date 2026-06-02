@@ -925,14 +925,14 @@ input.ef:focus,textarea.ef:focus{outline:none;border-color:var(--b)}
 </div>
 
 <!-- HISTORY DRAWER (today's generated emails) -->
-<button class="hist-tab" id="hist-tab" onclick="toggleHistoryPanel()">🕘 Dzisiejsze maile<span class="hist-tab-count" id="hist-tab-count">0</span></button>
+<button class="hist-tab" id="hist-tab" onclick="toggleHistoryPanel()">🕘 Today's emails<span class="hist-tab-count" id="hist-tab-count">0</span></button>
 <div class="hist-drawer" id="hist-drawer">
   <div class="hist-head">
     <div>
-      <h3>🕘 Dzisiejsze maile</h3>
-      <div class="hist-sub" id="hist-sub">Wygenerowane dzisiaj</div>
+      <h3>🕘 Today's emails</h3>
+      <div class="hist-sub" id="hist-sub">Generated today</div>
     </div>
-    <button class="hist-close" onclick="toggleHistoryPanel()" aria-label="Zamknij">✕</button>
+    <button class="hist-close" onclick="toggleHistoryPanel()" aria-label="Close">✕</button>
   </div>
   <div class="hist-list" id="hist-list"></div>
 </div>
@@ -3284,7 +3284,7 @@ function histTitle(snap){
   const subj = (c.subject_emoji || c.subject || '').trim();
   if(subj) return subj;
   const names = (snap.progs || []).map(p => String(p).split(' – ')[0]);
-  return names.join(' + ') || 'Bez tytułu';
+  return names.join(' + ') || 'Untitled';
 }
 function histMeta(snap){
   const flags = {com:'🇬🇧', pl:'🇵🇱', it:'🇮🇹', br:'🇧🇷'};
@@ -3362,10 +3362,10 @@ function renderHistoryPanel(){
   const count = document.getElementById('hist-tab-count');
   const sub = document.getElementById('hist-sub');
   if(count) count.textContent = h.items.length;
-  if(sub) sub.textContent = h.items.length ? (h.items.length + ' wygenerowanych dzisiaj') : 'Wygenerowane dzisiaj';
+  if(sub) sub.textContent = h.items.length ? (h.items.length + ' generated today') : 'Generated today';
   if(!list) return;
   if(!h.items.length){
-    list.innerHTML = `<div class="hist-empty">Brak maili wygenerowanych dzisiaj.<br>Wygeneruj kampanię, a pojawi się tutaj – będziesz mogła do niej wrócić.</div>`;
+    list.innerHTML = `<div class="hist-empty">No emails generated today yet.<br>Generate a campaign and it will appear here – you can come back to it anytime.</div>`;
     return;
   }
   list.innerHTML = h.items.map(it => {
@@ -3375,7 +3375,7 @@ function renderHistoryPanel(){
       : '<span class="hist-item-badge hist-badge-mkt">Campaign</span>';
     const active = it.id === _activeHistId ? ' active' : '';
     return `<div class="hist-item${active}" onclick="loadHistoryEntry('${it.id}')">
-      <button class="hist-item-rm" onclick="deleteHistoryEntry('${it.id}',event)" aria-label="Usuń">✕</button>
+      <button class="hist-item-rm" onclick="deleteHistoryEntry('${it.id}',event)" aria-label="Delete">✕</button>
       <div class="hist-item-subj">${esc(histTitle(it))}</div>
       <div class="hist-item-meta">${m.flag} ${esc(m.names||'')} · ${m.time}${badge}</div>
     </div>`;
