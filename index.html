@@ -2576,6 +2576,21 @@ function buildEmailHTML(c, ctaUrl1, ctaUrl2, imgs) {
   const e = s => String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
   const footerHtml = getFooterHtml();
 
+  const isWhatsApp = u => /^(https?:\/\/(wa\.me|api\.whatsapp\.com|web\.whatsapp\.com)|whatsapp:)/i.test(u||'');
+  const ctaButton = (url, label, role) => {
+    const wa = isWhatsApp(url);
+    const bg = wa ? '#25D366' : (role==='secondary' ? '#3A9AD9' : '#FCD23A');
+    const color = (wa || role==='secondary') ? '#FFFFFF' : '#111111';
+    const fontSize = role==='secondary' ? '16px' : '17px';
+    const pad = role==='secondary' ? '16px 20px' : '18px 20px';
+    return `<table border="0" cellpadding="0" cellspacing="0" width="100%" style="border-collapse:collapse;">
+    <tr><td align="center" bgcolor="${bg}" style="border-radius:50px;padding:${pad};">
+      <a href="${url}" target="_blank"
+        style="color:${color};text-decoration:none;font-weight:800;font-family:${FONT};font-size:${fontSize};display:block;">${e(label)}</a>
+    </td></tr>
+  </table>`;
+  };
+
   const bullets = txt => {
     if(/<[a-z][\s\S]*>/i.test(txt)) return txt;
     return txt.split(/\n/).map(l=>l.trim()).filter(Boolean)
@@ -2610,12 +2625,7 @@ function buildEmailHTML(c, ctaUrl1, ctaUrl2, imgs) {
 
   const cta1 = `
 <tr><td style="padding:24px 20px 0;">
-  <table border="0" cellpadding="0" cellspacing="0" width="100%" style="border-collapse:collapse;">
-    <tr><td align="center" bgcolor="#FCD23A" style="border-radius:50px;padding:18px 20px;">
-      <a href="${ctaUrl1}" target="_blank"
-        style="color:#111111;text-decoration:none;font-weight:800;font-family:${FONT};font-size:17px;display:block;">${e(c.cta)}</a>
-    </td></tr>
-  </table>
+  ${ctaButton(ctaUrl1, c.cta, 'primary')}
 </td></tr>`;
 
   const p1 = `
@@ -2646,12 +2656,7 @@ function buildEmailHTML(c, ctaUrl1, ctaUrl2, imgs) {
 
   const cta2 = `
 <tr><td style="padding:14px 20px 24px;">
-  <table border="0" cellpadding="0" cellspacing="0" width="100%" style="border-collapse:collapse;">
-    <tr><td align="center" bgcolor="#3A9AD9" style="border-radius:50px;padding:16px 20px;">
-      <a href="${ctaUrl2}" target="_blank"
-        style="color:#FFFFFF;text-decoration:none;font-weight:800;font-family:${FONT};font-size:16px;display:block;">${e(c.cta2||c.cta)}</a>
-    </td></tr>
-  </table>
+  ${ctaButton(ctaUrl2, c.cta2||c.cta, 'secondary')}
 </td></tr>`;
 
   const img4 = imgs[3] ? imgRow(imgs[3].bodyUrl||imgs[3].thumb||imgs[3].url) : '';
