@@ -930,7 +930,7 @@ input.ef:focus,textarea.ef:focus{outline:none;border-color:var(--b)}
   <div class="hist-head">
     <div>
       <h3>🕘 Today's emails</h3>
-      <div class="hist-sub" id="hist-sub">Generated today</div>
+      <div class="hist-sub" id="hist-sub">Kept for this session only</div>
     </div>
     <button class="hist-close" onclick="toggleHistoryPanel()" aria-label="Close">✕</button>
   </div>
@@ -1261,7 +1261,7 @@ let promoPhase  = null;  // phase id or null
 let promoDate   = '';     // editable deadline
 let promoDiscount = '';   // e.g. '-15%', '-500 zł'
 
-// Persistence (localStorage) state
+// Persistence (sessionStorage – cleared when the tab/session closes) state
 let _lastCampaign = null; // last generated campaign object (raw from AI)
 let _lastProgs    = [];   // programme list used for last generation
 let _saveTimer    = null;
@@ -3176,7 +3176,7 @@ function resetAll(){
 function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 
 // ═══════════════════════════════════════════════════════════
-//  PERSISTENCE (localStorage) – auto-save & restore
+//  PERSISTENCE (sessionStorage) – auto-save & restore (cleared on tab close)
 // ═══════════════════════════════════════════════════════════
 const LS_KEY = 'av_mailing_state_v1';
 const SAVE_FIELDS = [
@@ -3218,12 +3218,12 @@ function buildSnapshot(){
 function saveState(){
   try{
     const s = buildSnapshot();
-    localStorage.setItem(LS_KEY, JSON.stringify(s));
+    sessionStorage.setItem(LS_KEY, JSON.stringify(s));
     syncActiveHistory(s);
   }catch(e){ /* storage unavailable or full – ignore */ }
 }
 function clearSaved(){
-  try{ localStorage.removeItem(LS_KEY); }catch(e){}
+  try{ sessionStorage.removeItem(LS_KEY); }catch(e){}
 }
 function scheduleSave(){
   clearTimeout(_saveTimer);
@@ -3231,7 +3231,7 @@ function scheduleSave(){
 }
 function restoreState(){
   let s = null;
-  try{ s = JSON.parse(localStorage.getItem(LS_KEY) || 'null'); }catch(e){ s = null; }
+  try{ s = JSON.parse(sessionStorage.getItem(LS_KEY) || 'null'); }catch(e){ s = null; }
   if(!s || s.v !== 1) return null;
   applyState(s);
   return s;
@@ -3263,19 +3263,18 @@ const HIST_KEY = 'av_mailing_history_v1';
 let _activeHistId = null;
 function loadHist(){
   let h = null;
-  try{ h = JSON.parse(localStorage.getItem(HIST_KEY) || 'null'); }catch(e){ h = null; }
+  try{ h = JSON.parse(sessionStorage.getItem(HIST_KEY) || 'null'); }catch(e){ h = null; }
   if(!h || !Array.isArray(h.items)) h = { items: [], activeId: null };
   return h;
 }
 function saveHist(h){
-  try{ localStorage.setItem(HIST_KEY, JSON.stringify(h)); }catch(e){}
+  try{ sessionStorage.setItem(HIST_KEY, JSON.stringify(h)); }catch(e){}
 }
 function isToday(ts){
   const d = new Date(ts), n = new Date();
   return d.getFullYear()===n.getFullYear() && d.getMonth()===n.getMonth() && d.getDate()===n.getDate();
 }
 function pruneHist(h){
-  h.items = (h.items||[]).filter(it => isToday(it.ts));
   if(!h.items.find(it => it.id === h.activeId)) h.activeId = null;
   return h;
 }
@@ -3362,10 +3361,10 @@ function renderHistoryPanel(){
   const count = document.getElementById('hist-tab-count');
   const sub = document.getElementById('hist-sub');
   if(count) count.textContent = h.items.length;
-  if(sub) sub.textContent = h.items.length ? (h.items.length + ' generated today') : 'Generated today';
+  if(sub) sub.textContent = h.items.length ? (h.items.length + ' this session') : 'Kept for this session only';
   if(!list) return;
   if(!h.items.length){
-    list.innerHTML = `<div class="hist-empty">No emails generated today yet.<br>Generate a campaign and it will appear here – you can come back to it anytime.</div>`;
+    list.innerHTML = `<div class="hist-empty">No emails generated in this session yet.<br>Generated emails stay here only while this tab stays open and are cleared when you close it – keep this tab open to come back to them.</div>`;
     return;
   }
   list.innerHTML = h.items.map(it => {
