@@ -474,6 +474,21 @@ Return ONLY valid JSON, no markdown, no backticks.
     const e = s => String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
     const footerContent = footer_html || `<a href="*|UPDATE_PROFILE|*" style="color:#AAA;text-decoration:underline;">Update preferences</a> &nbsp;|&nbsp; <a href="*|UNSUB|*" style="color:#AAA;text-decoration:underline;">Unsubscribe</a>`;
 
+    const isWhatsApp = u => /^(https?:\/\/(wa\.me|api\.whatsapp\.com|web\.whatsapp\.com)|whatsapp:)/i.test(u||'');
+    const ctaButton = (url, label, role) => {
+      const wa = isWhatsApp(url);
+      const bg = wa ? '#25D366' : (role==='secondary' ? '#3A9AD9' : '#FCD23A');
+      const color = (wa || role==='secondary') ? '#FFFFFF' : '#111111';
+      const fontSize = role==='secondary' ? '16px' : '17px';
+      const pad = role==='secondary' ? '16px 24px' : '18px 24px';
+      return `<table border="0" cellpadding="0" cellspacing="0" width="100%" style="border-collapse:collapse;">
+    <tr><td align="center" bgcolor="${bg}" style="border-radius:50px;padding:${pad};">
+      <a href="${url}" target="_blank"
+        style="color:${color};text-decoration:none;font-weight:800;font-family:${FONT};font-size:${fontSize};display:block;white-space:nowrap;">${e(label)}</a>
+    </td></tr>
+  </table>`;
+    };
+
     const bullets = txt => {
       // If already HTML from RTE editor, use directly
       if (/<[a-z][\s\S]*>/i.test(txt)) return txt;
@@ -520,12 +535,7 @@ Return ONLY valid JSON, no markdown, no backticks.
 
     const cta1Row = `
 <tr><td style="padding:24px 20px 0;">
-  <table border="0" cellpadding="0" cellspacing="0" width="100%" style="border-collapse:collapse;">
-    <tr><td align="center" bgcolor="#FCD23A" style="border-radius:50px;padding:18px 24px;">
-      <a href="${cta_url}" target="_blank"
-        style="color:#111111;text-decoration:none;font-weight:800;font-family:${FONT};font-size:17px;display:block;white-space:nowrap;">${e(campaign.cta)}</a>
-    </td></tr>
-  </table>
+  ${ctaButton(cta_url, campaign.cta, 'primary')}
 </td></tr>`;
 
     const p1Row = `
@@ -554,12 +564,7 @@ Return ONLY valid JSON, no markdown, no backticks.
 
     const cta2Row = `
 <tr><td style="padding:14px 20px 24px;">
-  <table border="0" cellpadding="0" cellspacing="0" width="100%" style="border-collapse:collapse;">
-    <tr><td align="center" bgcolor="#3A9AD9" style="border-radius:50px;padding:16px 24px;">
-      <a href="${ctaUrl2}" target="_blank"
-        style="color:#FFFFFF;text-decoration:none;font-weight:800;font-family:${FONT};font-size:16px;display:block;white-space:nowrap;">${e(campaign.cta2||campaign.cta)}</a>
-    </td></tr>
-  </table>
+  ${ctaButton(ctaUrl2, campaign.cta2||campaign.cta, 'secondary')}
 </td></tr>`;
 
     const img4Row = imgs[3] ? img(imgs[3].bodyUrl||imgs[3].thumb||imgs[3].url) : '';
