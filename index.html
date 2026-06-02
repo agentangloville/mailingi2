@@ -631,6 +631,7 @@ input.ef:focus,textarea.ef:focus{outline:none;border-color:var(--b)}
     <button class="mkt-pill active" onclick="setMarket('com',this)">🇬🇧 Native Speakers</button>
     <button class="mkt-pill" onclick="setMarket('pl',this)">🇵🇱 Polska</button>
     <button class="mkt-pill" onclick="setMarket('it',this)">🇮🇹 Italia</button>
+    <button class="mkt-pill" onclick="setMarket('br',this)">🇧🇷 Brasil</button>
   </div>
 </div>
 
@@ -950,6 +951,11 @@ const FOOTERS = {
      mc:`Vuoi modificare come ricevi queste email?<br>Puoi <a href="*|UPDATE_PROFILE|*" style="color:#555;text-decoration:underline;">aggiornare le preferenze</a> o <a href="*|UNSUB|*" style="color:#555;text-decoration:underline;">cancellarti dalla lista</a>.<br><br>Il titolare del trattamento dati è Angloville S.R.L. <a href="https://angloville.it/privacy-policy/" style="color:#555;text-decoration:underline;">Privacy Policy</a>`,
      hs:`Vuoi modificare come ricevi queste email?<br>Puoi <a href="{{ unsubscribe_link_all }}" style="color:#555;text-decoration:underline;">aggiornare le preferenze</a> o <a href="{{ unsubscribe_link }}" style="color:#555;text-decoration:underline;">cancellarti dalla lista</a>.<br><br>Il titolare del trattamento dati è Angloville S.R.L. <a href="https://angloville.it/privacy-policy/" style="color:#555;text-decoration:underline;">Privacy Policy</a>`},
   ],
+  br:[
+    {id:'br-br',name:'angloville.com.br (BR)',prev:'brasil@angloville.com · Cancelar inscrição · Política de Privacidade',
+     mc:`Quer mudar como você recebe estes e-mails?<br>Você pode <a href="*|UPDATE_PROFILE|*" style="color:#555;text-decoration:underline;">atualizar suas preferências</a> ou <a href="*|UNSUB|*" style="color:#555;text-decoration:underline;">cancelar a inscrição desta lista</a>.<br><br>O responsável pelo tratamento dos seus dados é a Angloville International Ltd. <a href="https://angloville.com.br/politica-de-privacidade/" style="color:#555;text-decoration:underline;">Política de Privacidade</a>`,
+     hs:`Quer mudar como você recebe estes e-mails?<br>Você pode <a href="{{ unsubscribe_link_all }}" style="color:#555;text-decoration:underline;">atualizar suas preferências</a> ou <a href="{{ unsubscribe_link }}" style="color:#555;text-decoration:underline;">cancelar a inscrição desta lista</a>.<br><br>O responsável pelo tratamento dos seus dados é a Angloville International Ltd. <a href="https://angloville.com.br/politica-de-privacidade/" style="color:#555;text-decoration:underline;">Política de Privacidade</a>`},
+  ],
 };
 
 // ═══════════════════════════════════════════════════════════
@@ -1089,6 +1095,38 @@ Lingua: SOLO italiano.`,
       ]},
       {lbl:"Anno all'Estero",progs:[
         {id:'anno-usa',  e:'🏫',t:'Anno in USA',                     d:'Liceo americano 12–18 anni'},
+      ]},
+    ],
+  },
+  br:{
+    lang:'pt-br',
+    ph:'ex. Vagas para outubro em Malta, preço de lançamento, parcele em 12x, foco no English Village Polônia…',
+    ltxt:'Claude está criando sua campanha…',
+    brand:`Angloville Brasil (angloville.com.br) – imersão total em inglês na Europa desde 2011.
+Público: brasileiros – adultos/profissionais 25–50 anos (inglês A2+, que travam na hora de falar) e jovens 14–18 anos.
+Voz: calorosa, motivadora, consultiva. Português do Brasil natural. Fala direto com o leitor. Benefícios concretos.
+Mensagens-chave: quebrar a barreira da fala em 7 dias · 70h com native speakers do Reino Unido, EUA e Irlanda · sem sala de aula, sem livros, zero português · 1 semana de imersão = cerca de 1 mês morando fora · tudo incluído (hospedagem + 3 refeições + certificado de 70h) · 1.900+ avaliações 4.8/5 · consultor brasileiro dedicado · brasileiros não precisam de visto (Schengen, até 90 dias).
+Idioma: APENAS português do Brasil.`,
+    cats:[
+      {id:'adultos',lbl:'👤 Adultos 25+',groups:[0,1]},
+      {id:'jovens',lbl:'🎒 Jovens 14–18',groups:[2,3]},
+    ],
+    groups:[
+      {lbl:'Full Immersion – Adultos',progs:[
+        {id:'polonia-ad',   e:'🇵🇱',t:'English Village Polônia',     d:'70h 1:1 com native speakers · o ano todo'},
+        {id:'malta-ad',     e:'🇲🇹',t:'English Village Malta',       d:'~55h 2:1 + passeios · a partir de outubro'},
+      ]},
+      {lbl:'Escola parceira – Adultos (complemento)',progs:[
+        {id:'malta-esc-ad', e:'🏫',t:'Malta – escola parceira',      d:'+1–2 semanas, só junto ao Full Immersion'},
+        {id:'uk-esc-ad',    e:'🏛',t:'Reino Unido – escola parceira', d:'+1–2 semanas, só junto ao Full Immersion'},
+      ]},
+      {lbl:'Full Immersion – Jovens',progs:[
+        {id:'malta-jr',     e:'🇲🇹',t:'Malta',                       d:'Full Immersion 2:1 com native speakers'},
+        {id:'uk-jr',        e:'🇬🇧',t:'Reino Unido',                 d:'Full Immersion 2:1 com native speakers'},
+      ]},
+      {lbl:'Viagens pela Europa – Jovens',progs:[
+        {id:'eurotrip-br',  e:'🌍',t:'Eurotrip',                     d:'Paris, Disneyland, Bruxelas, Amsterdã e Berlim'},
+        {id:'baltic-br',    e:'🌊',t:'Baltic Trip',                  d:'Riga, Tallinn, Estocolmo, Helsinque e Vilnius'},
       ]},
     ],
   },
@@ -1939,7 +1977,7 @@ function toggleDates(){
   if(datesEnabled && !datesRows.length){
     addDateRow();
     // Set default heading
-    const defaultHeadings = {com:'Upcoming dates',pl:'Najbliższe terminy',it:'Prossime date'};
+    const defaultHeadings = {com:'Upcoming dates',pl:'Najbliższe terminy',it:'Prossime date',br:'Próximas datas'};
     datesHeading = defaultHeadings[market] || 'Upcoming dates';
     const hEl = document.getElementById('dates-heading');
     if(hEl) hEl.value = datesHeading;
@@ -2010,6 +2048,7 @@ function renderResults(c,progs){
     com: [{id:'hi-fname',lbl:`Hi ${fn},`},{id:'hello',lbl:'Hello!'},{id:'custom-g',lbl:'Custom…'}],
     pl: [{id:'dzien-dobry',lbl:`Dzień dobry ${fn}!`},{id:'czesc',lbl:`Cześć ${fn}!`},{id:'hi-fname',lbl:`Hi ${fn},`},{id:'custom-g',lbl:'Custom…'}],
     it: [{id:'ciao',lbl:`Ciao ${fn}!`},{id:'buongiorno',lbl:`Buongiorno ${fn}!`},{id:'hi-fname',lbl:`Hi ${fn},`},{id:'custom-g',lbl:'Custom…'}],
+    br: [{id:'ola',lbl:`Olá ${fn}!`},{id:'oi',lbl:`Oi ${fn}!`},{id:'hi-fname',lbl:`Hi ${fn},`},{id:'custom-g',lbl:'Custom…'}],
   };
   const gOpts = greetOpts[market]||greetOpts.com;
   h+=`<div class="rcard" style="margin-top:-6px;padding:12px 16px;background:#FAFBFD;">
@@ -2044,7 +2083,7 @@ function renderResults(c,progs){
   if(hasDates && !datesRows.length){
     datesEnabled = true;
     datesRows = c.dates_table.map(d=>({programme:d.programme||'', dates:d.dates||'', note:d.note||''}));
-    const defaultHeadings = {com:'Upcoming dates',pl:'Najbliższe terminy',it:'Prossime date'};
+    const defaultHeadings = {com:'Upcoming dates',pl:'Najbliższe terminy',it:'Prossime date',br:'Próximas datas'};
     datesHeading = defaultHeadings[market] || 'Upcoming dates';
   }
 
@@ -2054,7 +2093,7 @@ function renderResults(c,progs){
     <div class="dates-toggle-hint">${datesEnabled ? 'ON – tabela dat w mailu' : 'OFF – kliknij żeby włączyć'}</div>
   </div>`;
 
-  const dtLabels = {com:['Programme','Dates','Note'],pl:['Program','Terminy','Uwagi'],it:['Programma','Date','Note']};
+  const dtLabels = {com:['Programme','Dates','Note'],pl:['Program','Terminy','Uwagi'],it:['Programma','Date','Note'],br:['Programa','Datas','Observação']};
   const [dtProg,dtDates,dtNote] = dtLabels[market]||dtLabels.com;
 
   h+=`<div class="dates-editor${datesEnabled?' show':''}" id="dates-editor">
@@ -2087,7 +2126,7 @@ function renderResults(c,progs){
       product_url: o.product_url || o.cta_url || '',
       signup_url: o.signup_url || ''
     }));
-    const defaultHeadings = {com:'Explore other Angloville programmes', pl:'Zobacz inne programy Angloville', it:'Scopri altri programmi Angloville'};
+    const defaultHeadings = {com:'Explore other Angloville programmes', pl:'Zobacz inne programy Angloville', it:'Scopri altri programmi Angloville', br:'Conheça outros programas Angloville'};
     otherOptionsHeading = defaultHeadings[market] || defaultHeadings.com;
   }
 
@@ -2334,8 +2373,8 @@ function showPlaintextPreview(){
   const FONT="Arial,'Helvetica Neue',Helvetica,sans-serif";
 
   // Build Gmail-like preview chrome
-  const senderNames={com:'Angloville Team',pl:'Zespół Angloville',it:'Team Angloville'};
-  const senderEmails={com:'hello@angloville.com',pl:'kontakt@angloville.pl',it:'info@angloville.it'};
+  const senderNames={com:'Angloville Team',pl:'Zespół Angloville',it:'Team Angloville',br:'Equipe Angloville'};
+  const senderEmails={com:'hello@angloville.com',pl:'kontakt@angloville.pl',it:'info@angloville.it',br:'brasil@angloville.com'};
   const sender=senderNames[market]||'Angloville';
   const senderEmail=senderEmails[market]||'hello@angloville.com';
   const subject=c.subject||'(no subject)';
@@ -2674,6 +2713,8 @@ function greetMap(){
     'czesc':`Cześć <strong>${fn}</strong>!`,
     'ciao':`Ciao <strong>${fn}</strong>!`,
     'buongiorno':`Buongiorno <strong>${fn}</strong>!`,
+    'ola':`Olá <strong>${fn}</strong>!`,
+    'oi':`Oi <strong>${fn}</strong>!`,
   };
 }
 let activeGreeting = 'none';
@@ -2717,6 +2758,9 @@ const SOCIAL_LINKS = {
     youtube: 'https://www.youtube.com/@angloville-italia/featured',
     tiktok: 'https://www.tiktok.com/@anglovilleitalia',
   },
+  br: {
+    instagram: 'https://www.instagram.com/anglovillebrasil/',
+  },
 };
 
 const PL_WYMIANA_IDS = new Set(['usa','kanada','online']);
@@ -2737,7 +2781,7 @@ function getActiveSocialLinks(){
 function buildSocialRow(){
   const linkSets = getActiveSocialLinks();
   const FONT = "Arial,'Helvetica Neue',Helvetica,sans-serif";
-  const followLabel = market==='pl' ? 'Obserwuj nas' : market==='it' ? 'Seguici' : 'Follow us';
+  const followLabel = market==='pl' ? 'Obserwuj nas' : market==='it' ? 'Seguici' : market==='br' ? 'Siga-nos' : 'Follow us';
 
   const pill = (url, label, bg) => url
     ? `<a href="${url}" target="_blank" style="display:inline-block;margin:0 4px 6px;padding:8px 16px;background:${bg};color:#FFFFFF;font-family:${FONT};font-size:12px;font-weight:700;text-decoration:none;border-radius:20px;letter-spacing:0.3px;">${label}</a>`
@@ -2951,14 +2995,16 @@ function buildOtherOptionsHtml(){
   const defaultHeadings = {
     com: 'Explore other Angloville programmes',
     pl: 'Zobacz inne programy Angloville',
-    it: 'Scopri altri programmi Angloville'
+    it: 'Scopri altri programmi Angloville',
+    br: 'Conheça outros programas Angloville'
   };
   const heading = otherOptionsHeading || defaultHeadings[market] || defaultHeadings.com;
   
   const labels = {
     com: {product: 'Learn more', signup: 'Apply now'},
     pl: {product: 'Zobacz', signup: 'Zapisz się'},
-    it: {product: 'Scopri', signup: 'Iscriviti'}
+    it: {product: 'Scopri', signup: 'Iscriviti'},
+    br: {product: 'Saiba mais', signup: 'Inscreva-se'}
   };
   const lbl = labels[market] || labels.com;
   
