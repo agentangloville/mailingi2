@@ -1195,6 +1195,11 @@ let promoPhase  = null;  // phase id or null
 let promoDate   = '';     // editable deadline
 let promoDiscount = '';   // e.g. '-15%', '-500 zł'
 
+// Persistence (localStorage) state
+let _lastCampaign = null; // last generated campaign object (raw from AI)
+let _lastProgs    = [];   // programme list used for last generation
+let _saveTimer    = null;
+
 const PROMO_DATA = {
   wakacje: {
     label: '🏖 Wakacje',
@@ -1219,6 +1224,7 @@ function setMarket(mkt, btn) {
   market = mkt; selected.clear(); selHero = null; selBody = []; selFoot = null; libCat = null; activeCat = null;
   promoSeason = null; promoPhase = null; promoDate = ''; promoDiscount = '';
   otherOptionsEnabled = false; otherOptionsHeading = ''; otherOptionsCards = [];
+  _lastCampaign = null; _lastProgs = [];
   document.querySelectorAll('.mkt-pill').forEach(t=>t.classList.remove('active'));
   btn.classList.add('active');
   document.getElementById('extra').placeholder = MKT[mkt].ph;
@@ -1701,6 +1707,8 @@ async function generate(){
     if(!data.ok) throw new Error(data.error||'Unknown error');
     if(emailType==='plaintext') renderPlaintextResults(data.campaign,progs);
     else renderResults(data.campaign,progs);
+    _lastCampaign = data.campaign; _lastProgs = progs;
+    saveState();
   }catch(e){showErr('Error: '+e.message);}
 
   document.getElementById('loader-wrap').style.display='none';
@@ -3083,6 +3091,7 @@ function resetAll(){
   otherOptionsEnabled=false;otherOptionsHeading='';otherOptionsCards=[];
   emailType='marketing';
   promoSeason=null;promoPhase=null;promoDate='';promoDiscount='';
+  _lastCampaign=null;_lastProgs=[];clearSaved();
   // Reset mailto toggles
   [1,2].forEach(n=>{
     const tog=document.getElementById('mailto-toggle-'+n);
@@ -3099,6 +3108,106 @@ function resetAll(){
 }
 function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 
+// ═══════════════════════════════════════════════════════════
+//  PERSISTENCE (localStorage) – auto-save & restore
+// ═══════════════════════════════════════════════════════════
+const LS_KEY = 'av_mailing_state_v1';
+const SAVE_FIELDS = [
+  'e-sub','e-sub-em','e-pre','e-h1','e-intro','e-p1','e-p2','e-p3',
+  'e-cta1','e-cta2','e-ps','e-ab1','e-ab2','greeting-val',
+  'pt-sub','pt-sub-em','pt-greeting','pt-body','pt-cta','pt-closing','pt-ab1','pt-ab2',
+  'utm-base','dates-heading','other-options-heading',
+];
+function captureFields(){
+  const o = {};
+  SAVE_FIELDS.forEach(id => {
+    const el = document.getElementById(id);
+    if(!el) return;
+    o[id] = (el.isContentEditable || el.tagName === 'DIV') ? {h: el.innerHTML} : {v: el.value};
+  });
+  return o;
+}
+function applyFields(o){
+  if(!o) return;
+  Object.entries(o).forEach(([id, val]) => {
+    const el = document.getElementById(id);
+    if(!el) return;
+    if('h' in val) el.innerHTML = val.h; else el.value = val.v;
+  });
+}
+function saveState(){
+  try{
+    const s = {
+      v: 1, market, emailType, selPlatform, selFoot,
+      selected: [...selected], selHero, selBody,
+      datesEnabled, datesRows, datesHeading,
+      otherOptionsEnabled, otherOptionsHeading, otherOptionsCards,
+      promoSeason, promoPhase, promoDate, promoDiscount,
+      extra: document.getElementById('extra')?.value || '',
+      campaign: _lastCampaign, progs: _lastProgs,
+      fields: captureFields(),
+      ts: Date.now(),
+    };
+    localStorage.setItem(LS_KEY, JSON.stringify(s));
+  }catch(e){ /* storage unavailable or full – ignore */ }
+}
+function clearSaved(){
+  try{ localStorage.removeItem(LS_KEY); }catch(e){}
+}
+function scheduleSave(){
+  clearTimeout(_saveTimer);
+  _saveTimer = setTimeout(saveState, 600);
+}
+function restoreState(){
+  let s = null;
+  try{ s = JSON.parse(localStorage.getItem(LS_KEY) || 'null'); }catch(e){ s = null; }
+  if(!s || s.v !== 1) return null;
+  market = MKT[s.market] ? s.market : 'com';
+  emailType = s.emailType || 'marketing';
+  selPlatform = s.selPlatform || 'mc';
+  selFoot = s.selFoot || null;
+  selected = new Set(s.selected || []);
+  selHero = s.selHero || null;
+  selBody = s.selBody || [];
+  datesEnabled = !!s.datesEnabled;
+  datesRows = s.datesRows || [];
+  datesHeading = s.datesHeading || '';
+  otherOptionsEnabled = !!s.otherOptionsEnabled;
+  otherOptionsHeading = s.otherOptionsHeading || '';
+  otherOptionsCards = s.otherOptionsCards || [];
+  promoSeason = s.promoSeason || null;
+  promoPhase = s.promoPhase || null;
+  promoDate = s.promoDate || '';
+  promoDiscount = s.promoDiscount || '';
+  _lastCampaign = s.campaign || null;
+  _lastProgs = s.progs || [];
+  return s;
+}
+function init(){
+  const s = restoreState();
+  const M = MKT[market];
+  const ex = document.getElementById('extra');
+  if(ex){ ex.placeholder = M.ph; if(s) ex.value = s.extra || ''; }
+  const lt = document.getElementById('loader-txt');
+  if(lt) lt.textContent = M.ltxt;
+  // reflect active market pill
+  document.querySelectorAll('.mkt-pill').forEach(b => {
+    const oc = b.getAttribute('onclick') || '';
+    b.classList.toggle('active', oc.includes("setMarket('" + market + "'"));
+  });
+  setEmailType(emailType);
+  renderAll();
+  if(s && _lastCampaign){
+    if(emailType === 'plaintext') renderPlaintextResults(_lastCampaign, _lastProgs);
+    else renderResults(_lastCampaign, _lastProgs);
+    applyFields(s.fields);
+  }
+  // auto-save on any edit or interaction (capture phase so it runs after handlers mutate state)
+  document.addEventListener('input', scheduleSave, true);
+  document.addEventListener('change', scheduleSave, true);
+  document.addEventListener('click', scheduleSave, true);
+}
+
 // INIT
 document.addEventListener('click', function(ev){
   if(!ev.target.closest('.emoji-pop') && !ev.target.closest('.rte-btn[title="Insert emoji"]')){
@@ -3106,9 +3215,9 @@ document.addEventListener('click', function(ev){
   }
 });
 if(document.readyState==='loading'){
-  document.addEventListener('DOMContentLoaded', renderAll);
+  document.addEventListener('DOMContentLoaded', init);
 } else {
-  renderAll();
+  init();
 }
 </script>
 </body>
